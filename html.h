@@ -272,7 +272,7 @@ const char index_html[] PROGMEM = R"rawliteral(
           <table>
             <tbody>
               <tr>
-                <td width="120px"><span>Max AC Leistung:</span></td>
+                <td width="120px"><span>Max Power [W]:</span></td>
                 <td><input type="number" min="0" max="2000" id="MAXWATTINPUT"/></td>
               </tr>
               <tr>
