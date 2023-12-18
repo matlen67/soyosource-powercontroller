@@ -89,8 +89,8 @@ unsigned long timerDelaySoyo = 800;  // send readings timer
 unsigned long lastTimeUptime = 0;  
 unsigned long timerDelayUptime = 60000;  // send readings timer
 
-unsigned long lastTimeShelly = 0;  
-unsigned long timerDelayShelly = 5000;  // read shelly timer
+int lastMeterinterval = 0;  
+int meterinterval = 5000;  // read shelly timer
 
 unsigned long lastTimeNES = 0;  
 unsigned long timerDelayNES = 10000;  // read shelly timer
@@ -152,6 +152,7 @@ char watt_2[6] = "0";
 
 char meteripaddr[16] = "";
 char maxwatt[6] = "0";
+
 
 //state checkboxes
 bool checkboxT1 = false;
@@ -354,6 +355,7 @@ void saveConfig(){
   json["watt2"] = watt_2;
   json["maxwatt"] = maxwatt;
   json["meteripaddr"] = meteripaddr;
+  json["meterinterval"] = String(meterinterval);
   
   
   File configFile = LittleFS.open("/config.json", "w");
@@ -639,6 +641,13 @@ void setup() {
             strcpy(meteripaddr, json["meteripaddr"]);  
             shelly_ip = String(meteripaddr);
           }
+          if(json.containsKey("meterinterval")){
+            char test[6];
+            strcpy(test, json["meterinterval"]);
+
+            meterinterval = atoi(test);  
+            
+          }
 
         } else {
           DBG_PRINTLN("failed to load json config");
@@ -733,6 +742,7 @@ void setup() {
         myJson["METERNAME"] = metername;
         myJson["MAXWATTINPUT"] = maxwatt;
         myJson["METERIP"] = meteripaddr;
+        myJson["METERINTERVAL"] = meterinterval;
         myJson["TIMER1TIME"] = time_1;
         myJson["TIMER1WATT"] = watt_1;
         myJson["TIMER2TIME"] = time_2;
@@ -878,38 +888,35 @@ void setup() {
 
 
     server.on("/savesettings", HTTP_GET, [] (AsyncWebServerRequest *request) {
-      String value1, value2, value3, value4, value5, value6 ;
+      String value;
 
-      value1 = request->getParam("t1")->value();
-      value2 = request->getParam("w1")->value();
-
+      value = request->getParam("t1")->value();
       memset(time_1, 0, sizeof(time_1)); 
-      strcat(time_1, value1.c_str());     
-        
+      strcat(time_1, value.c_str());     
+
+      value = request->getParam("w1")->value();
       memset(watt_1, 0, sizeof(watt_1)); 
-      strcat(watt_1, value2.c_str());     
+      strcat(watt_1, value.c_str());     
     
-      
-      value3 = request->getParam("t2")->value();
-      value4 = request->getParam("w2")->value();
-
+      value = request->getParam("t2")->value();
       memset(time_2, 0, sizeof(time_2)); 
-      strcat(time_2, value3.c_str());     
-        
+      strcat(time_2, value.c_str());     
+
+      value = request->getParam("w2")->value();  
       memset(watt_2, 0, sizeof(watt_2)); 
-      strcat(watt_2, value4.c_str());     
+      strcat(watt_2, value.c_str());     
                
-        
-      value5 = request->getParam("maxwatt")->value();
-      value6 = request->getParam("meteripaddr")->value();
-
+      value = request->getParam("maxwatt")->value();
       memset(maxwatt, 0, sizeof(maxwatt)); 
-      strcat(maxwatt, value5.c_str());     
-        
-      memset(meteripaddr, 0, sizeof(meteripaddr)); 
-      strcat(meteripaddr, value6.c_str());      
-      
+      strcat(maxwatt, value.c_str());     
 
+      value = request->getParam("meteripaddr")->value();  
+      memset(meteripaddr, 0, sizeof(meteripaddr)); 
+      strcat(meteripaddr, value.c_str());
+
+      value =  request->getParam("meterinterval")->value();
+      meterinterval = atoi(value.c_str());
+      
       saveConfig(); 
 
       shelly_ip = String(meteripaddr);
@@ -1019,14 +1026,15 @@ void loop() {
 
  
   // timer to get Shelly3EM data (5 sek)
-  if ((millis() - lastTimeShelly) > timerDelayShelly) {  
+  if ((millis() - lastMeterinterval) > meterinterval) {  
+    DBG_PRINTLN("test interval");
     if (shelly_typ > 0){
       shelly_power = getMeterData(shelly_typ);
     } else{
       shelly_typ = getShellyTyp();
       DBG_PRINTLN("Kein Shelly erkannt! Bitte IP eintragen, speichern und ESP neu starten.");
     }
-    lastTimeShelly = millis();
+    lastMeterinterval = millis();
   }
 
 

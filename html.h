@@ -236,8 +236,17 @@ const char index_html[] PROGMEM = R"rawliteral(
           </table>
           <hr>
           <table>
+            <tbody>
+              <tr>
+                <td width="120px"><span>Interval [ms]:</span></td>
+                <td><span><input type="number" min="500" max="5000" id="METERINTERVAL" /></span></td>
+              </tr>
+            </tbody>
+          </table>
+          <hr>
+          <table>
             <tr>
-              <td width="100px">Meter Ip:</td>
+              <td width="120px">Meter Ip:</td>
               <td><span><input type='text' id='METERIP' placeholder='xxx.xxx.xxx.xxx' required pattern='^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$'/></span></td>
             </tr>
           </table>
@@ -263,7 +272,7 @@ const char index_html[] PROGMEM = R"rawliteral(
           <table>
             <tbody>
               <tr>
-                <td width=40%%><span>Max AC Leistung:</span></td>
+                <td width="120px"><span>Max AC Leistung:</span></td>
                 <td><input type="number" min="0" max="2000" id="MAXWATTINPUT"/></td>
               </tr>
               <tr>
@@ -374,6 +383,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("MQTTROOT3").innerHTML      = data_start.MQTTROOT
       document.getElementById("MQTTSTATE").innerHTML      = data_start.MQTTSTATE
       document.getElementById("METERIP").value            = data_start.METERIP
+      document.getElementById("METERINTERVAL").value      = data_start.METERINTERVAL
       document.getElementById("MAXWATTINPUT").value       = data_start.MAXWATTINPUT
       document.getElementById("TIMER1TIME").value         = data_start.TIMER1TIME
       document.getElementById("TIMER2TIME").value         = data_start.TIMER2TIME
@@ -465,11 +475,12 @@ const char index_html[] PROGMEM = R"rawliteral(
     var timer2_watt = document.getElementById("TIMER2WATT").value;
 
     var meteripaddr = document.getElementById("METERIP").value;
+    var meterinterval = document.getElementById("METERINTERVAL").value;
     var maxwatt = document.getElementById("MAXWATTINPUT").value;
     
     let text = "Save Settings!\nPress OK or Cancel.";
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/savesettings?t1=" + timer1_time + "&w1=" + timer1_watt + "&t2=" + timer2_time + "&w2=" + timer2_watt + "&meteripaddr=" + meteripaddr + "&maxwatt=" + maxwatt , true);
+    xhr.open("GET", "/savesettings?t1=" + timer1_time + "&w1=" + timer1_watt + "&t2=" + timer2_time + "&w2=" + timer2_watt + "&meteripaddr=" + meteripaddr +  "&meterinterval=" + meterinterval +"&maxwatt=" + maxwatt , true);
     xhr.send();    
   };
 
