@@ -30,11 +30,27 @@
 #include <TelnetSpy.h>
 
 
-#define ISDEBUG true
-
 TelnetSpy SerialAndTelnet;
 #define DEBUG_SERIAL SerialAndTelnet
 
+
+#define DEBUG
+
+#ifdef DEBUG
+  #define DBG_PRINT(x) DEBUG_SERIAL.print(x)
+  #define DBG_PRINTLN(x) DEBUG_SERIAL.println(x)
+#else
+  #define DBG_PRINT(x)
+  #define DBG_PRINTLN(x)
+#endif
+
+//***************************************************************
+// da Serial.printf(x,x) mit define nicht funktioniert als workaround sprintf
+// sprintf(dbgbuffer,"ESP_%02X%02X%02X", mac[3], mac[4], mac[5]);
+// DBG_PRINTLN(dbgbuffer);
+//***************************************************************
+
+char dbgbuffer[128]; 
 
 #define RXPin        D1  // Serial Receive pin (D1)
 #define TXPin        D4  // Serial Transmit pin (D4)
@@ -153,7 +169,6 @@ String shelly_ip = "";
 int shelly_typ = 0 ; 
 
 //nulleinspeisung
-//int ac_limit = 0;
 int soyo_ac_out= 0;
 int shelly_power = 0;
 
@@ -174,7 +189,7 @@ bool shouldSaveConfig = false;
 
 //callback notifying us of the need to save config
 void saveConfigCallback () {
-  DEBUG_SERIAL.println("Should save config");
+  DBG_PRINTLN("Should save config");
   shouldSaveConfig = true;
 }
 
@@ -254,7 +269,7 @@ String processor(const String& var){
 
 
 void reconnect() {
-  DEBUG_SERIAL.println("reconnect MQTT connection!");
+  DBG_PRINTLN("reconnect MQTT connection!");
 
   //set callback again
   client.setCallback(mqtt_callback);
@@ -264,10 +279,10 @@ void reconnect() {
   // wait for connection
   while (!client.connected()){
 
-    DEBUG_SERIAL.println();
+    DBG_PRINTLN("");
         
     if (client.connect(clientId)) {
-      DEBUG_SERIAL.println("connection established");
+      DBG_PRINTLN("connection established");
 
       client.publish(topic_alive, "1");
       client.publish(topic_power, "0"); 
@@ -275,16 +290,16 @@ void reconnect() {
 
       strcpy(mqtt_state, "connected");
 
-      DEBUG_SERIAL.print("subscrible: ");
-      DEBUG_SERIAL.print(topic_power);
-      DEBUG_SERIAL.println(" ");
+      DBG_PRINT("subscrible: ");
+      DBG_PRINT(topic_power);
+      DBG_PRINTLN("");
     } else {
-      DEBUG_SERIAL.println("reconnect failed! ");
+      DBG_PRINTLN("reconnect failed! ");
       strcpy(mqtt_state, "connection error");
       
       //give a litle time to connect
       while (timeout){
-        DEBUG_SERIAL.print(".");
+        DBG_PRINT(".");
         timeout--;
         delay(1000);
       }
@@ -313,13 +328,8 @@ void setSoyoPowerData(int power){
 
 
 void saveConfig(){
-
-  #if defined(ARDUINOJSON_VERSION_MAJOR) && ARDUINOJSON_VERSION_MAJOR >= 6
-    DynamicJsonDocument json(1024);
-  #else
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject& json = jsonBuffer.createObject();
-  #endif
+  DynamicJsonDocument json(1024);
+ 
   json["mqtt_server"] = mqtt_server;
   json["mqtt_port"] = mqtt_port;
 
@@ -348,28 +358,24 @@ void saveConfig(){
   
   File configFile = LittleFS.open("/config.json", "w");
   if (!configFile) {
-    DEBUG_SERIAL.println("failed to open config file for writing");
+    DBG_PRINTLN("failed to open config file for writing");
   }
 
-  #if defined(ARDUINOJSON_VERSION_MAJOR) && ARDUINOJSON_VERSION_MAJOR >= 6
-    serializeJson(json, Serial);
-    serializeJson(json, configFile);
-  #else
-    json.printTo(Serial);
-    json.printTo(configFile);
-  #endif
+  serializeJson(json, Serial);
+  serializeJson(json, configFile);
+  
   configFile.close();
-  DEBUG_SERIAL.println();
+  DBG_PRINTLN();
 
 }
 
 
 void telnetConnected() {
-  DEBUG_SERIAL.println(F("Telnet connection established."));
+  DBG_PRINTLN(F("Telnet connection established."));
 }
 
 void telnetDisconnected() {
-  DEBUG_SERIAL.println(F("Telnet connection closed."));
+  DBG_PRINTLN(F("Telnet connection closed."));
 }
 
 void disconnectClientWrapper() {
@@ -399,8 +405,8 @@ int getShellyTyp(){
         DeserializationError error = deserializeJson(doc, payload);
         
         if (error) {
-          DEBUG_SERIAL.print(F("deserializeJson() failed: "));
-          DEBUG_SERIAL.println(error.f_str());
+          DBG_PRINT(F("deserializeJson() failed: "));
+          DBG_PRINTLN(error.f_str());
         }
 
         //test auf Shelly 3EM Pro
@@ -435,8 +441,8 @@ int getShellyTyp(){
     }
     http.end();
   }
-  DEBUG_SERIAL.print("getShellyTyp() = ");
-  DEBUG_SERIAL.println(String(metername));
+  DBG_PRINT("getShellyTyp() = ");
+  DBG_PRINTLN(String(metername));
   return typ;
 }
 
@@ -471,8 +477,8 @@ int getMeterData(int typ) {
         DeserializationError error = deserializeJson(doc, payload);
                 
         if (error) {
-          DEBUG_SERIAL.print(F("deserializeJson() failed: "));
-          DEBUG_SERIAL.println(error.f_str());
+          DBG_PRINT(F("deserializeJson() failed: "));
+          DBG_PRINTLN(error.f_str());
         }
 
         if (typ == 1) {
@@ -502,12 +508,14 @@ int getMeterData(int typ) {
       }
 
     } else {
-      DEBUG_SERIAL.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+      //DEBUG_SERIAL.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+      sprintf(dbgbuffer,"[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+      DBG_PRINTLN(dbgbuffer);
       shelly_typ = 0;
     }
     http.end();
   } else {
-    DEBUG_SERIAL.printf("[HTTP} Unable to connect\n");
+    DBG_PRINTLN("[HTTP] Unable to connect\n");
     shelly_typ = 0;
   }
   return power;
@@ -534,9 +542,11 @@ void setup() {
 
   WiFi.macAddress(mac);
   
-  DEBUG_SERIAL.println("Start");
-  DEBUG_SERIAL.printf("ESP_%02X%02X%02X", mac[3], mac[4], mac[5]);
-  DEBUG_SERIAL.println();
+  DBG_PRINTLN("Start");
+  sprintf(dbgbuffer,"ESP_%02X%02X%02X", mac[3], mac[4], mac[5]);
+  DBG_PRINTLN(dbgbuffer);
+  //DEBUG_SERIAL.printf("ESP_%02X%02X%02X", mac[3], mac[4], mac[5]);
+  //DEBUG_SERIAL.println();
 
   configTime(MY_TZ, MY_NTP_SERVER);
   
@@ -560,16 +570,16 @@ void setup() {
   RS485Serial.begin(4800);   // set RS485 baud
 
   //read configuration from json
-  DEBUG_SERIAL.println("mounting FS...");
+  DBG_PRINTLN("mounting FS...");
 
   if (LittleFS.begin()) {
-    DEBUG_SERIAL.println("mounted file system");
+    DBG_PRINTLN("mounted file system");
     if (LittleFS.exists("/config.json")) {
       //file exists, reading and loading
-      DEBUG_SERIAL.println("reading config file");
+      DBG_PRINTLN("reading config file");
       File configFile = LittleFS.open("/config.json", "r");
       if (configFile) {
-        DEBUG_SERIAL.println("opened config file");
+        DBG_PRINTLN("opened config file");
         size_t size = configFile.size();
         // Allocate a buffer to store contents of the file.
         std::unique_ptr<char[]> buf(new char[size]);
@@ -580,21 +590,18 @@ void setup() {
         auto deserializeError = deserializeJson(json, buf.get());
         serializeJson(json, Serial);
         if ( ! deserializeError ) {
-       
-         DEBUG_SERIAL.println("\nparsed json");
+          DBG_PRINTLN("\nparsed json");
+          strcpy(mqtt_server, json["mqtt_server"]);
+          strcpy(mqtt_port, json["mqtt_port"]);
 
-        strcpy(mqtt_server, json["mqtt_server"]);
-        strcpy(mqtt_port, json["mqtt_port"]);
-
-        if(json.containsKey("mqttenabled")){
-          char json_mqttstate[2];
-          strcpy(json_mqttstate, json["mqttenabled"]);
-
-          if(strcmp(json_mqttstate, "1") == 0){
-            mqttenabled = true;
-            }else{
-              mqttenabled = false;
-            }
+          if(json.containsKey("mqttenabled")){
+            char json_mqttstate[2];
+            strcpy(json_mqttstate, json["mqttenabled"]);
+            if(strcmp(json_mqttstate, "1") == 0){
+              mqttenabled = true;
+              }else{
+                mqttenabled = false;
+              }
           }
 
           if(json.containsKey("nulleinspeisung")){
@@ -634,12 +641,12 @@ void setup() {
           }
 
         } else {
-          DEBUG_SERIAL.println("failed to load json config");
+          DBG_PRINTLN("failed to load json config");
         }
       }
     }
   } else {
-    DEBUG_SERIAL.println("failed to mount FS");
+    DBG_PRINTLN("failed to mount FS");
   }
   //end read config data
 
@@ -663,18 +670,18 @@ void setup() {
   res = wifiManager.autoConnect(apName.c_str());
 
   if(!res) {
-    DEBUG_SERIAL.println("Failed to connect");
+    DBG_PRINTLN("Failed to connect");
     ESP.restart();
   } else {
     //if you get here you have connected to the WiFi    
-    DEBUG_SERIAL.print("WiFi connected to ");
-    DEBUG_SERIAL.println(String(WiFi.SSID()));
-    DEBUG_SERIAL.print("RSSI = ");
-    DEBUG_SERIAL.print(String(WiFi.RSSI()));
-    DEBUG_SERIAL.println(" dB");
-    DEBUG_SERIAL.print("IP address  ");
-    DEBUG_SERIAL.println(WiFi.localIP());
-    DEBUG_SERIAL.println();
+    DBG_PRINT("WiFi connected to ");
+    DBG_PRINTLN(String(WiFi.SSID()));
+    DBG_PRINT("RSSI = ");
+    DBG_PRINT(String(WiFi.RSSI()));
+    DBG_PRINTLN(" dB");
+    DBG_PRINT("IP address  ");
+    DBG_PRINTLN(WiFi.localIP());
+    DBG_PRINTLN();
 
     //read updated parameters
     strcpy(mqtt_server, custom_mqtt_server.getValue());
@@ -685,9 +692,9 @@ void setup() {
       saveConfig();
     }
 
-    DEBUG_SERIAL.println("set mqtt server!");
-    DEBUG_SERIAL.println(String("mqtt_server: ") + mqtt_server);
-    DEBUG_SERIAL.println(String("mqtt_port: ") + mqtt_port);
+    DBG_PRINTLN("set mqtt server!");
+    DBG_PRINTLN(String("mqtt_server: ") + mqtt_server);
+    DBG_PRINTLN(String("mqtt_port: ") + mqtt_port);
 
     client.setServer(mqtt_server, atoi(mqtt_port));
     client.setCallback(mqtt_callback);
@@ -704,9 +711,11 @@ void setup() {
     // Handle Web Server Events
     events.onConnect([](AsyncEventSourceClient *client){
       if(client->lastId()){
-        DEBUG_SERIAL.println("");
-        DEBUG_SERIAL.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
-        DEBUG_SERIAL.println("");
+        DBG_PRINTLN("");
+        //DEBUG_SERIAL.printf("Client reconnected! Last message ID that it got is: %u\n", client->lastId());
+        sprintf(dbgbuffer,"Client reconnected! Last message ID that it got is: %u\n", client->lastId());
+        DBG_PRINTLN(dbgbuffer);
+        //DEBUG_SERIAL.println("");
       }
       client->send("hello!", NULL, millis(), 10000);
     });
@@ -765,7 +774,7 @@ void setup() {
 
     // restart system
     server.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {   
-      DEBUG_SERIAL.println("/restart");  
+      DBG_PRINTLN("/restart");  
       ESP.restart();
       request->send_P(200, "text/html", index_html, processor);
     });
@@ -776,8 +785,8 @@ void setup() {
   
       if (request->hasParam("value") ) {
         parm1 = request->getParam("value")->value();
-        DEBUG_SERIAL.print("/acoutput?value = ");
-        DEBUG_SERIAL.println(parm1);
+        DBG_PRINT("/acoutput?value = ");
+        DBG_PRINTLN(parm1);
 
         if(parm1.equals("/s0") ){
           soyo_power = 0;
@@ -913,7 +922,7 @@ void setup() {
     server.onNotFound(notFound);
     server.addHandler(&events);
     server.begin();
-    DEBUG_SERIAL.println("Server start");
+    DBG_PRINTLN("Server start");
 
     rssi = WiFi.RSSI();
    
@@ -934,7 +943,7 @@ void loop() {
  
   if(mqttenabled){
     if (!client.connected()) {
-      DEBUG_SERIAL.println("lost mqtt connection -> start reconncect");
+      DBG_PRINTLN("lost mqtt connection -> start reconncect");
       reconnect();
     }
     client.loop(); 
@@ -950,20 +959,19 @@ void loop() {
     // send data to RS485 
     for(int i=0; i<8; i++){
       RS485Serial.write(soyo_power_data[i]);
-      //DEBUG_SERIAL.println(soyo_power_data[i], HEX);
+      //DBG_PRINTLN(soyo_power_data[i], HEX);
     }
     
     if(soyo_power != old_soyo_power){
       old_soyo_power = soyo_power;
       
-      DEBUG_SERIAL.print("new soyo_power = ");
-      DEBUG_SERIAL.print(soyo_power);
-      DEBUG_SERIAL.print(" ( ");
-      if(ISDEBUG){
-        Serial.printf("%02X %02X %02X %02X %02X %02X %02X %02X",soyo_power_data[0],soyo_power_data[1],soyo_power_data[2],soyo_power_data[3],soyo_power_data[4],soyo_power_data[5],soyo_power_data[6],soyo_power_data[7]);
-      }
-      DEBUG_SERIAL.print(" ) ");
-      DEBUG_SERIAL.println();
+      DBG_PRINT("new soyo_power = ");
+      DBG_PRINT(soyo_power);
+      DBG_PRINT(" ( ");
+      sprintf(dbgbuffer,"%02X %02X %02X %02X %02X %02X %02X %02X",soyo_power_data[0],soyo_power_data[1],soyo_power_data[2],soyo_power_data[3],soyo_power_data[4],soyo_power_data[5],soyo_power_data[6],soyo_power_data[7]);
+      DBG_PRINT(dbgbuffer);
+      DBG_PRINT(" ) ");
+      DBG_PRINTLN();
     }
     
     
@@ -1016,7 +1024,7 @@ void loop() {
       shelly_power = getMeterData(shelly_typ);
     } else{
       shelly_typ = getShellyTyp();
-      DEBUG_SERIAL.println("Kein Shelly erkannt! Bitte IP eintragen, speichern und ESP neu starten.");
+      DBG_PRINTLN("Kein Shelly erkannt! Bitte IP eintragen, speichern und ESP neu starten.");
     }
     lastTimeShelly = millis();
   }
@@ -1027,8 +1035,8 @@ void loop() {
 
     if(nulleinspeisung){      
       int limit = String(maxwatt).toInt();
-      DEBUG_SERIAL.print("nulleinspeisung limit = ");
-      DEBUG_SERIAL.println(limit);
+      DBG_PRINT("nulleinspeisung limit = ");
+      DBG_PRINTLN(limit);
         
       if(shelly_power > 20){  
         soyo_ac_out += shelly_power - 10;
@@ -1046,8 +1054,8 @@ void loop() {
         } 
       }
 
-      DEBUG_SERIAL.print("nulleinspeisung soyo_Ac_out = ");
-      DEBUG_SERIAL.println(soyo_ac_out);
+      DBG_PRINT("nulleinspeisung soyo_Ac_out = ");
+      DBG_PRINTLN(soyo_ac_out);
 
       soyo_power = soyo_ac_out;
     }
