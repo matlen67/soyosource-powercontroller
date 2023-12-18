@@ -15,6 +15,8 @@ Gleich als Hinweis. In den aktuellen Versionen der Geräte gibt der Soyosource k
  - ElegantOTA           (https://github.com/ayushsharma82/AsyncElegantOTA)
  - Uptime               (https://github.com/XbergCode/Uptime)
 
+## PlatfomIO
+Dieses Projet wurde von der Ardunino IDE zu PlatdormIO portiert
 
 ## Schaltung
 ### Bauteile
