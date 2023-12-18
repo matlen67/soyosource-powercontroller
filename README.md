@@ -16,7 +16,7 @@ Gleich als Hinweis. In den aktuellen Versionen der Geräte gibt der Soyosource k
  - Uptime               (https://github.com/XbergCode/Uptime)
 
 ## PlatformIO
-Dieses Projet wurde von der Ardunino IDE zu PlatdormIO portiert
+Dieses Projet wurde von der Ardunino IDE zu PlatformIO portiert
 
 ## Schaltung
 ### Bauteile
