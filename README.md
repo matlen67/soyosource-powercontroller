@@ -1,4 +1,4 @@
-# soyosource_power_controller
+# soyosource-powercontroller
 Die Seite befindet sich noch im Aufbau!
 
 Mit diesem Projekt ist es möglich die Einspeiseleistung einens SoyoSource GTN-1000W / GTN-1200W per Webinterface, MQTT (z.B iobroker) oder mit einem EnergyMeter wir z.B. einem Shelly 3EM (pro) zu steuern.
