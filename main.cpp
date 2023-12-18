@@ -44,11 +44,11 @@ TelnetSpy SerialAndTelnet;
   #define DBG_PRINTLN(x)
 #endif
 
-//***************************************************************
+//*****************************************************************************
 // da Serial.printf(x,x) mit define nicht funktioniert als workaround sprintf
 // sprintf(dbgbuffer,"ESP_%02X%02X%02X", mac[3], mac[4], mac[5]);
 // DBG_PRINTLN(dbgbuffer);
-//***************************************************************
+//*****************************************************************************
 
 char dbgbuffer[128]; 
 
