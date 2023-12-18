@@ -642,10 +642,9 @@ void setup() {
             shelly_ip = String(meteripaddr);
           }
           if(json.containsKey("meterinterval")){
-            char test[6];
-            strcpy(test, json["meterinterval"]);
-
-            meterinterval = atoi(test);  
+            char buffer[6];
+            strcpy(buffer, json["meterinterval"]);
+            meterinterval = atoi(buffer);  
             
           }
 
