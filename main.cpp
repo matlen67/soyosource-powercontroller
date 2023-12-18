@@ -145,13 +145,13 @@ const int shelly_em = 3;
 const int shelly_1pm = 4;
 
 char currentTime[20];
-char time_1[6] = "06:00";
-char time_2[6] = "20:00";
-char watt_1[6] = "0";
-char watt_2[6] = "0";
-
+char timer1_time[6] = "06:00";
+char timer2_time[6] = "20:00";
 char meteripaddr[16] = "";
-char maxwatt[6] = "0";
+
+int timer1_watt = 0;
+int timer2_watt = 0;
+int maxwatt = 0;
 
 
 //state checkboxes
@@ -349,13 +349,13 @@ void saveConfig(){
   json["ip"] = WiFi.localIP().toString();
   json["gateway"] = WiFi.gatewayIP().toString();
   json["subnet"] = WiFi.subnetMask().toString();
-  json["time1"] = time_1;
-  json["watt1"] = watt_1;
-  json["time2"] = time_2;
-  json["watt2"] = watt_2;
+  json["timer1_time"] = timer1_time;
+  json["timer1_watt"] = timer1_watt;
+  json["timer2_time"] = timer2_time;
+  json["timer2_watt"] = timer2_watt;
   json["maxwatt"] = maxwatt;
   json["meteripaddr"] = meteripaddr;
-  json["meterinterval"] = String(meterinterval);
+  json["meterinterval"] = meterinterval;
   
   
   File configFile = LittleFS.open("/config.json", "w");
@@ -601,9 +601,9 @@ void setup() {
             strcpy(json_mqttstate, json["mqttenabled"]);
             if(strcmp(json_mqttstate, "1") == 0){
               mqttenabled = true;
-              }else{
-                mqttenabled = false;
-              }
+            }else{
+              mqttenabled = false;
+            }
           }
 
           if(json.containsKey("nulleinspeisung")){
@@ -617,24 +617,24 @@ void setup() {
             }
           }
 
-          if(json.containsKey("time1")){
-            strcpy(time_1, json["time1"]);            
+          if(json.containsKey("timer1_time")){
+            strcpy(timer1_time, json["timer1_time"]);            
           }
 
-          if(json.containsKey("time2")){
-            strcpy(time_2, json["time2"]);
+          if(json.containsKey("timer2_time")){
+            strcpy(timer2_time, json["timer2_time"]);
           }
 
-          if(json.containsKey("watt1")){
-            strcpy(watt_1, json["watt1"]);
+          if(json.containsKey("timer1_watt")){
+            timer1_watt = json["timer1_watt"];
           }
 
-          if(json.containsKey("watt2")){
-            strcpy(watt_2, json["watt2"]);  
+          if(json.containsKey("timer2_watt")){
+            timer2_watt = json["timer2_watt"];  
           }
 
           if(json.containsKey("maxwatt")){
-            strcpy(maxwatt, json["maxwatt"]);  
+            maxwatt = json["maxwatt"];  
           }
 
           if(json.containsKey("meteripaddr")){
@@ -642,10 +642,7 @@ void setup() {
             shelly_ip = String(meteripaddr);
           }
           if(json.containsKey("meterinterval")){
-            char buffer[6];
-            strcpy(buffer, json["meterinterval"]);
-            meterinterval = atol(buffer);  
-            
+            meterinterval = json["meterinterval"]; 
           }
 
         } else {
@@ -742,10 +739,10 @@ void setup() {
         myJson["MAXWATTINPUT"] = maxwatt;
         myJson["METERIP"] = meteripaddr;
         myJson["METERINTERVAL"] = meterinterval;
-        myJson["TIMER1TIME"] = time_1;
-        myJson["TIMER1WATT"] = watt_1;
-        myJson["TIMER2TIME"] = time_2;
-        myJson["TIMER2WATT"] = watt_2;
+        myJson["TIMER1TIME"] = timer1_time;
+        myJson["TIMER1WATT"] = timer1_watt;
+        myJson["TIMER2TIME"] = timer2_time;
+        myJson["TIMER2WATT"] = timer2_watt;
         myJson["MQTTROOT"] = mqtt_root;
         myJson["MQTTSTATE"] = mqtt_state;
         myJson["CBNULL"] = nulleinspeisung; //checkbox
@@ -890,24 +887,27 @@ void setup() {
       String value;
 
       value = request->getParam("t1")->value();
-      memset(time_1, 0, sizeof(time_1)); 
-      strcat(time_1, value.c_str());     
+      memset(timer1_time, 0, sizeof(timer1_time)); 
+      strcat(timer1_time, value.c_str());     
 
       value = request->getParam("w1")->value();
-      memset(watt_1, 0, sizeof(watt_1)); 
-      strcat(watt_1, value.c_str());     
+      timer1_watt = atoi(value.c_str());
+      //memset(watt_1, 0, sizeof(watt_1)); 
+      //strcat(watt_1, value.c_str());     
     
       value = request->getParam("t2")->value();
-      memset(time_2, 0, sizeof(time_2)); 
-      strcat(time_2, value.c_str());     
+      memset(timer2_time, 0, sizeof(timer2_time)); 
+      strcat(timer2_time, value.c_str());     
 
       value = request->getParam("w2")->value();  
-      memset(watt_2, 0, sizeof(watt_2)); 
-      strcat(watt_2, value.c_str());     
+      timer2_watt = atoi(value.c_str());
+      //memset(watt_2, 0, sizeof(watt_2)); 
+      //strcat(watt_2, value.c_str());     
                
       value = request->getParam("maxwatt")->value();
-      memset(maxwatt, 0, sizeof(maxwatt)); 
-      strcat(maxwatt, value.c_str());     
+      maxwatt = atoi(value.c_str());
+      //memset(maxwatt, 0, sizeof(maxwatt)); 
+      //strcat(maxwatt, value.c_str());     
 
       value = request->getParam("meteripaddr")->value();  
       memset(meteripaddr, 0, sizeof(meteripaddr)); 
@@ -994,11 +994,12 @@ void loop() {
     }
       
     if (checkboxT1 == true){      
-      int t1_hour = String(time_1).substring(0,2).toInt();
-      int t1_min = String(time_1).substring(3).toInt();
+      int t1_hour = String(timer1_time).substring(0,2).toInt();
+      int t1_min = String(timer1_time).substring(3).toInt();
 
       if((timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 1) ){
-        soyo_power = atoi(watt_1);
+        //soyo_power = atoi(watt_1);
+        soyo_power = timer1_watt;
         sprintf(msgData, "%d", soyo_power);
         if(mqttenabled){
           client.publish(topic_power, msgData);
@@ -1007,11 +1008,12 @@ void loop() {
     }
 
     if (checkboxT2 == true){    
-      int t2_hour = String(time_2).substring(0,2).toInt();
-      int t2_min = String(time_2).substring(3).toInt();  
+      int t2_hour = String(timer2_time).substring(0,2).toInt();
+      int t2_min = String(timer2_time).substring(3).toInt();  
       
       if((timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 1)){
-        soyo_power = atoi(watt_2);
+        //soyo_power = atoi(watt_2);
+        soyo_power = timer2_watt;
         sprintf(msgData, "%d", soyo_power);
         if(mqttenabled){
           client.publish(topic_power, msgData);
@@ -1026,7 +1028,6 @@ void loop() {
  
   // timer to get Shelly3EM data (5 sek)
   if ((millis() - lastMeterinterval) > meterinterval) {  
-    DBG_PRINTLN("test interval");
     if (shelly_typ > 0){
       shelly_power = getMeterData(shelly_typ);
     } else{
@@ -1041,7 +1042,7 @@ void loop() {
   if ((millis() - lastTimeNES) > timerDelayNES) { 
 
     if(nulleinspeisung){      
-      int limit = String(maxwatt).toInt();
+      int limit = maxwatt;
       DBG_PRINT("nulleinspeisung limit = ");
       DBG_PRINTLN(limit);
         
