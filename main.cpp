@@ -89,8 +89,8 @@ unsigned long timerDelaySoyo = 800;  // send readings timer
 unsigned long lastTimeUptime = 0;  
 unsigned long timerDelayUptime = 60000;  // send readings timer
 
-int lastMeterinterval = 0;  
-int meterinterval = 5000;  // read shelly timer
+unsigned long lastMeterinterval = 0;  
+unsigned long meterinterval = 5000;  // read shelly timer
 
 unsigned long lastTimeNES = 0;  
 unsigned long timerDelayNES = 10000;  // read shelly timer
@@ -644,7 +644,7 @@ void setup() {
           if(json.containsKey("meterinterval")){
             char buffer[6];
             strcpy(buffer, json["meterinterval"]);
-            meterinterval = atoi(buffer);  
+            meterinterval = atol(buffer);  
             
           }
 
@@ -914,7 +914,7 @@ void setup() {
       strcat(meteripaddr, value.c_str());
 
       value =  request->getParam("meterinterval")->value();
-      meterinterval = atoi(value.c_str());
+      meterinterval = atol(value.c_str());
       
       saveConfig(); 
 
