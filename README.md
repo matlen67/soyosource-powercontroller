@@ -1,5 +1,5 @@
 # soyosource-powercontroller
-Die Seite befindet sich noch im Aufbau!
+Diese Seite befindet sich noch im Aufbau.
 
 Mit diesem Projekt ist es möglich die Einspeiseleistung einens SoyoSource GTN-1000W / GTN-1200W per Webinterface, MQTT (z.B iobroker) oder mit einem EnergyMeter wir z.B. einem Shelly 3EM (pro) zu steuern.
 Der SoyoSource Einspeisewechselrichter kann die zu wandelnde Energie (DC-Seitig) aus PV-Module oder aus einer Batterie beziehen. Die Einspeiseleistung auf der AC-Seite kann im Einstellmenü als Festwert in Watt oder durch einen auf der Phase angeschlossenen Limiter bereitgestellt werden. Der Limiter wird per RS485 Schnittstelle am SoyoSource angeschlossen und senden dann die auf der Phase anliegende Leistung an den SoyoSource.
