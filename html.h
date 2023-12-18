@@ -4,14 +4,11 @@ const char index_html[] PROGMEM = R"rawliteral(
 <head>
   <title>SoyoSource-PowerController</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src='j.js'></script>
   <style>
     html {font-family: Arial; display: inline-block; text-align: center;}
-    table {
-       width: 90%;
-       table-layout: fixed;
-    }
+    table { width: 90%%; table-layout: fixed; }
     table.font1{ font-size: clamp(.9rem, 0.9vw, 1.2rem); }
+    table.style2 { width: 100%%; table-layout: fixed; }
     td { text-align: left; }
     th { text-align: center; }
     p {  font-size: 1.2rem;}
@@ -186,7 +183,7 @@ const char index_html[] PROGMEM = R"rawliteral(
             </b>
           </summary>
           <hr>
-          <table>
+          <table class="style2">
             <tbody>
               <tr>
                 <td style="text-align: center;"><button type="button" onclick="set_power('/m1');" class="btn">- 1</button></td>
