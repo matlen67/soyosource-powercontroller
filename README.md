@@ -30,8 +30,10 @@ Wer dieses Projekt weiterhin mit der Arduino IDE nutzen möchte muss die Datei m
 
 Hinweis: Das RS485 Entwicklungsboard verwendet einen MAX485 Pegelwandler der für eine Versorgungsspannung von 5V ausgelegt ist. Da die GPIO's des ESP8266 dauerhaft nur 3.3V vertragen wird die Spannung Vcc vom RS485 Entwicklungsboard am 3.3V Ausgang des NodeMCU abgegriffen. Das RS485 Etwicklungsboard arbeitet auch zuverlässig mit 3.3V. Die 5V Spannungsversorgung des NodeMCU kann entweder über USB oder den Anschlus-Pin VIN erfolgen.
 
-### Bild 1
+
+### Bild 1: Schaltung
 <img src="https://github.com/matlen67/soyosource-powercontroller/blob/main/image/wiring_nodemcu_rs485.png" width="512">
+
 
 ### Bild 2: Einstellmenü SoyoSource
 Hier muss 'Bat AutoLimit Grid' auf Y stehen
