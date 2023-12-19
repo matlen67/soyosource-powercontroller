@@ -6,13 +6,14 @@ const char index_html[] PROGMEM = R"rawliteral(
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     html {font-family: Arial; display: inline-block; text-align: center;}
-    table { width: 90%%; table-layout: fixed; }
+    table { width: 90%; table-layout: fixed; }
     table.font1{ font-size: clamp(.9rem, 0.9vw, 1.2rem); }
-    table.style2 { width: 100%%; table-layout: fixed; }
+    table.style2 { width: 100%; table-layout: fixed; }
     td { text-align: left; }
     th { text-align: center; }
     p {  font-size: 1.2rem;}
     body {  margin: 0;}
+    .title1 { font-size: 1.2rem; font-weight: bold; color: #034078; }
     .alnright { text-align: right; }
     .topnav { overflow: hidden; background-color: #263c5e; color: white; font-size: 1.5rem; }
     .content { padding: 10px; }
@@ -182,11 +183,12 @@ const char index_html[] PROGMEM = R"rawliteral(
             </b>
           </summary>
           <hr>
+          <span class="title1">Manuelle Vorgabe</span>
           <table class="style2">
             <tbody>
               <tr>
                 <td style="text-align: center;"><button type="button" onclick="set_power('/m1');" class="btn">- 1</button></td>
-                <td style="text-align: center;" class="card-title">Set AC Output</td>
+                <td style="text-align: center;">Set AC Output</td>
                 <td style="text-align: center;"><button type="button" onclick="set_power('/p1');" class="btn">+ 1</button></td>
               </tr>
               <tr>

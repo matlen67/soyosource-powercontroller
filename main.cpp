@@ -348,7 +348,6 @@ void saveConfig(){
   
   configFile.close();
   DBG_PRINTLN();
-
 }
 
 
