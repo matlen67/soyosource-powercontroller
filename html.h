@@ -366,11 +366,9 @@ const char index_html[] PROGMEM = R"rawliteral(
 
 
 <script>
-  fetch('/json')
-    .then(function(response) {
+  fetch('/json').then(function(response) {
       return response.json();
-    })
-    .then(function(data_start) {
+    }).then(function(data_start) {
       console.log(data_start);
       document.getElementById("CLIENTID").innerHTML       = data_start.CLIENTID
       document.getElementById("WIFIRSSI").innerHTML       = data_start.WIFIRSSI
@@ -398,11 +396,9 @@ const char index_html[] PROGMEM = R"rawliteral(
   getDataInterval();
 
   function getDataInterval() {
-    fetch('/json')
-      .then(function(response) {
+    fetch('/json').then(function(response) {
         return response.json();
-      })
-    .then(function(data) {
+      }).then(function(data) {
       console.log(data);
       document.getElementById("UPTIME").innerHTML         = data.UPTIME
       document.getElementById("SOYOPOWER").innerHTML      = data.SOYOPOWER
