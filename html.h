@@ -153,7 +153,7 @@ const char index_html[] PROGMEM = R"rawliteral(
               <tbody>
                 <tr>
                   <td width="120px">Client ID:</td>
-                  <td id="CLIENTID">9999</td>
+                  <td id="CLIENTID"></td>
                 </tr>
                 <tr>
                   <td width="120px">Wifi RSSI:</td>
