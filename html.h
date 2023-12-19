@@ -370,7 +370,6 @@ const char index_html[] PROGMEM = R"rawliteral(
     .then(function(response) {
       return response.json();
     })
-    
     .then(function(data_start) {
       console.log(data_start);
       document.getElementById("CLIENTID").innerHTML       = data_start.CLIENTID
@@ -390,16 +389,15 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("CBMQTTSTATE").checked      = data_start.CBMQTTSTATE
       document.getElementById("CBTIMER1").checked         = data_start.CBTIMER1
       document.getElementById("CBTIMER2").checked         = data_start.CBTIMER2
-  
     });
 </script>
 
 
 <script>
-  setInterval(getDataIntervall, 1000);
-  getDataIntervall();
+  setInterval(getDataInterval, 1000);
+  getDataInterval();
 
-  function getDataIntervall() {
+  function getDataInterval() {
     fetch('/json')
       .then(function(response) {
         return response.json();
