@@ -33,7 +33,7 @@ Hinweis: Das RS485 Entwicklungsboard verwendet einen MAX485 Pegelwandler der fü
 ### Bild 1
 <img src="https://github.com/matlen67/soyosource-powercontroller/blob/main/image/wiring_nodemcu_rs485.png" width="512">
 
-### Bild 2: Einstellmenü
+### Bild 2: Einstellmenü SoyoSource
 Hier muss 'Bat AutoLimit Grid' auf Y stehen
 
 <img src="https://github.com/matlen67/soyosource-powercontroller/blob/main/image/display_setup.jpg" width="256">
