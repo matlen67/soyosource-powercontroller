@@ -126,7 +126,6 @@ unsigned char mac[6];
 char mqtt_root[32] = "SoyoSource/";
 char clientId[12];
 
-char topic_alive[40];
 char topic_power[40];
 char soyo_text[40];
 
@@ -285,7 +284,6 @@ void reconnect() {
     if (client.connect(clientId)) {
       DBG_PRINTLN("connection established");
 
-      client.publish(topic_alive, "1");
       client.publish(topic_power, "0"); 
       client.subscribe(topic_power);
 
@@ -558,10 +556,7 @@ void setup() {
   //mqtt_root = "SoyoSource/soyo_xxxxxx";
   strcat(mqtt_root, clientId);
   
-  //topic_alive = "SoyoSource/soyo_xxxxxx/alive";
-  strcat(topic_alive, mqtt_root);
-  strcat(topic_alive, "/alive");
-
+  
   //topic_power = "SoyoSource/soyo_xxxxxx/power";
   strcat(topic_power, mqtt_root);
   strcat(topic_power, "/power");
@@ -703,9 +698,7 @@ void setup() {
 
     client.setServer(mqtt_server, atoi(mqtt_port));
     client.setCallback(mqtt_callback);
-    client.publish(topic_alive, "0");
-    
-
+   
     // Handle Web Server
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
       new_connect = true;
@@ -961,6 +954,11 @@ void loop() {
 
     myUptime();
     setSoyoPowerData(soyo_power);
+    
+    if(mqttenabled){
+      sprintf(msgData, "%d", soyo_power);
+      client.publish(topic_power, msgData);
+    }
 
     // send data to RS485 
     for(int i=0; i<8; i++){
@@ -979,15 +977,7 @@ void loop() {
       DBG_PRINT(" ) ");
       DBG_PRINTLN();
     }
-    
-    
-    if(mqttenabled){
-      client.publish(topic_alive, "0");
-      client.publish(topic_alive, "1");
-    }
-    
-    //DEBUG_SERIAL.println();
-        
+            
     if(checkboxT1 || checkboxT2){
       time(&now);
       localtime_r(&now, &timeInfo);
@@ -998,7 +988,6 @@ void loop() {
       int t1_min = String(timer1_time).substring(3).toInt();
 
       if((timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 1) ){
-        //soyo_power = atoi(watt_1);
         soyo_power = timer1_watt;
         sprintf(msgData, "%d", soyo_power);
         if(mqttenabled){
@@ -1012,7 +1001,6 @@ void loop() {
       int t2_min = String(timer2_time).substring(3).toInt();  
       
       if((timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 1)){
-        //soyo_power = atoi(watt_2);
         soyo_power = timer2_watt;
         sprintf(msgData, "%d", soyo_power);
         if(mqttenabled){
@@ -1026,7 +1014,7 @@ void loop() {
 
 
  
-  // timer to get Shelly3EM data (5 sek)
+  // timer to get Shelly3EM data
   if ((millis() - lastMeterinterval) > meterinterval) {  
     if (shelly_typ > 0){
       shelly_power = getMeterData(shelly_typ);

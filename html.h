@@ -80,15 +80,13 @@ const char index_html[] PROGMEM = R"rawliteral(
         border-radius: 4px;
         box-sizing: border-box;
     }     
-   
-       
+     
     hr {
         border: 0;
-        height: 3px;
-        background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(9, 84, 132), rgba(0, 0, 0, 0));
+        height: 1px;
+        background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0));
     }
-    
-    
+   
     summary {
         position: relative;
         padding: 12px;
@@ -149,14 +147,15 @@ const char index_html[] PROGMEM = R"rawliteral(
                 </table>
               </b>
             </summary>
+            <hr>
             <table>
               <tbody>
                 <tr>
-                  <td>Client ID:</td>
+                  <td width="120px">Client ID:</td>
                   <td id="CLIENTID">9999</td>
                 </tr>
                 <tr>
-                  <td>Wifi RSSI:</td>
+                  <td width="120px">Wifi RSSI:</td>
                   <td><span><span id="WIFIRSSI"></span> dB</span></td>
                 </tr>
               </tbody>
@@ -219,15 +218,15 @@ const char index_html[] PROGMEM = R"rawliteral(
           <hr>
           <table>
             <tr>
-              <td width="50px">L1: </td>
+              <td width="120px">L1 [W]: </td>
               <td><span id="METERL1"></span></td>
             </tr>
             <tr>
-              <td width="50px">L2: </td>
+              <td width="120px">L2 [W]: </td>
               <td><span id="METERL2"></span></td>
             </tr>
             <tr>
-              <td width="50px">L3: </td>
+              <td width="120px">L3 [W]: </td>
               <td><span id="METERL3"></span></td>
             </tr>
           </table>
@@ -266,6 +265,7 @@ const char index_html[] PROGMEM = R"rawliteral(
               </table>
             </b>
           </summary>
+          <hr>
           <table>
             <tbody>
               <tr>
@@ -288,6 +288,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       <div class="card">
         <details>
           <summary><b>MQTT</b></summary>
+          <hr>
           <table>
             <tbody>
               <tr>
@@ -297,19 +298,16 @@ const char index_html[] PROGMEM = R"rawliteral(
                 <td style="text-align: left"><span id="MQTTROOT1"></span>/power</td>
               </tr>
               <tr>
-                <td style="text-align: left"><span id="MQTTROOT2"></span>/alive</td>
-              </tr>
-              <tr>
-                <td><hr></td>
+                <td> </td>
               </tr>
               <tr>
                 <th style="text-align: left">Subscribe Topics </th>
               </tr>
               <tr>
-                <td style="text-align: left"><span id="MQTTROOT3"></span>/power</td>
+                <td style="text-align: left"><span id="MQTTROOT2"></span>/power</td>
               </tr>
               <tr>
-                <td><hr></td>
+                <td> </td>
               </tr>
               <tr>
                 <td><label>Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBMQTTSTATE" /></label></td>
@@ -327,6 +325,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       <div class="card">
         <details>
           <summary><b>Timer</b></summary>
+          <hr>
           <table class="font2 left">
             <tbody>
               <tr>
@@ -377,7 +376,6 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("METERNAME").innerHTML      = data_start.METERNAME
       document.getElementById("MQTTROOT1").innerHTML      = data_start.MQTTROOT
       document.getElementById("MQTTROOT2").innerHTML      = data_start.MQTTROOT
-      document.getElementById("MQTTROOT3").innerHTML      = data_start.MQTTROOT
       document.getElementById("MQTTSTATE").innerHTML      = data_start.MQTTSTATE
       document.getElementById("METERIP").value            = data_start.METERIP
       document.getElementById("METERINTERVAL").value      = data_start.METERINTERVAL
