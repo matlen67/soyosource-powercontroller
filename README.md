@@ -1,22 +1,27 @@
 # soyosource-powercontroller
 Diese Seite befindet sich noch im Aufbau.
 
-Mit diesem Projekt ist es möglich die Einspeiseleistung einens SoyoSource GTN-1000W / GTN-1200W per Webinterface, MQTT (z.B iobroker) oder mit einem EnergyMeter wir z.B. einem Shelly 3EM (pro) zu steuern.
-Der SoyoSource Einspeisewechselrichter kann die zu wandelnde Energie (DC-Seitig) aus PV-Module oder aus einer Batterie beziehen. Die Einspeiseleistung auf der AC-Seite kann im Einstellmenü als Festwert in Watt oder durch einen auf der Phase angeschlossenen Limiter bereitgestellt werden. Der Limiter wird per RS485 Schnittstelle am SoyoSource angeschlossen und senden dann die auf der Phase anliegende Leistung an den SoyoSource.
+Mit diesem Projekt ist es möglich die Einspeiseleistung einens SoyoSource GTN-1000W / GTN-1200W per Webinterface durch manuelle Steuerung, Zeitplan, MQTT oder mit einem Shelly EnergyMeter (3EM PRO, 3EM, EM, 1PM) zu steuern.
+Der SoyoSource kann die Energie DC-Seitig aus PV-Module oder aus einer Batterie beziehen. Die AC-Einspeiseleistung kann im Einstellmenü als Festwert in Watt oder durch einen auf einer Phase angeschlossenen dazugehörigen Limiter bereitgestellt werden. Der Limiter wird per RS485-Schnittstelle am SoyoSource angeschlossen und sendet dann die auf der Phase anliegende Leistung an den SoyoSource.
 
-Diese Schaltung (Bild 1) ersetzt den Limiter zur Leistungsvorgabe und wird an der RS485 Schnittstelle des SoyoSouce angeschlossen. Damit die Leistungsvorgabe der Schaltung funktioniert muss im Einstellmenü der Limitermode aktiviert werden (Bild 2).
+Diese Steuerung in Verbindung mit der Schaltung aus Bild 1 ersetzt den SoyoSource Limiter. Damit die Leistungsvorgabe dieser Steuerung funktioniert, muss im Einstellmenü des SoyoSource der Limitermode aktiviert werden (Bild 2).
 
-Gleich als Hinweis. In den aktuellen Versionen der Geräte gibt der Soyosource keine Daten über die RS485 aus, somit ist ein Auslesen von verschiedenen Informationen aktuell nicht möglich. Leider liegen mir aktuell keine Informationen vor ob der Sendevorgang per Software/Hardware deaktiviert wurde oder es nur neue Parameter bedarf um den Soyo zum Sprechen zu bewegen kann. Aktuell sende ich per Schleife alle möglichen Byte-Reihenfolgen zum SoyoSoure um zu testen ob er irgendwann einmal antwortet.   
+Gleich als Hinweis. Die aktuellen Versionen der SoyoSource Einspeisewechselrichter geben keine Daten mehr über die RS485-Schnittstelle aus, somit ist ein Auslesen von SoyoSource Informationen nicht möglich. Leider liegen mir aktuell keine Informationen vor ob der Sendevorgang per Software/Hardware deaktiviert wurde oder ob es nur neue Parameter bedarf um den SoyoSource zum Senden zu bewegen.
+
+## PlatformIO
+Dieses Projet wurde von der Ardunino IDE zu PlatformIO portiert
+
 ## Arduino IDE 2.1.0
-#Library Github
+Wer dieses Projekt weiterhin mit der Arduino IDE nutzen möchte muss die Datei main.cpp nach 'soyosource-powercontroller.ino' umbenennen und diese  mit der html.h in einen Ordner mit den Namen 'soyosource-powercontroller' kopieren.
+
+#benötigte Librarys
  - ESPAsync_WiFiManager (https://github.com/khoih-prog/ESPAsync_WiFiManager)
  - ESPAsyncWebServer    (https://github.com/me-no-dev/ESPAsyncWebServer)
  - ESPAsyncTCP          (https://github.com/me-no-dev/ESPAsyncTCP)
  - ElegantOTA           (https://github.com/ayushsharma82/AsyncElegantOTA)
  - Uptime               (https://github.com/XbergCode/Uptime)
 
-## PlatformIO
-Dieses Projet wurde von der Ardunino IDE zu PlatformIO portiert
+
 
 ## Schaltung
 ### Bauteile
