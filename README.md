@@ -16,7 +16,7 @@ Wer dieses Projekt weiterhin mit der Arduino IDE nutzen möchte muss die Datei m
 
 #benötigte Librarys
  - ESPAsync_WiFiManager (https://github.com/khoih-prog/ESPAsync_WiFiManager)
- - ESPAsyncWebServer    (https://github.com/me-no-dev/ESPAsyncWebServer) ####Bitte Hinweis lesen
+ - ESPAsyncWebServer    (https://github.com/me-no-dev/ESPAsyncWebServer) Bitte Hinweis lesen
  - ESPAsyncTCP          (https://github.com/me-no-dev/ESPAsyncTCP)
  - ElegantOTA           (https://github.com/ayushsharma82/AsyncElegantOTA)
  - Uptime               (https://github.com/XbergCode/Uptime)
