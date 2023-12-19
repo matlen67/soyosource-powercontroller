@@ -64,16 +64,12 @@ char dbgbuffer[128];
 #define MY_NTP_SERVER "de.pool.ntp.org"           
 #define MY_TZ "CET-1CEST,M3.5.0/02,M10.5.0/03"   
 
- 
 SoftwareSerial RS485Serial(RXPin, TXPin); // RX, TX
-
 WiFiClient espClient;
 PubSubClient client(espClient);
-
 AsyncWebServer server(80);
 AsyncEventSource events("/events");
 AsyncDNSServer dns;
-
 
 
 // Uptime Global Variables
@@ -119,10 +115,8 @@ int old_soyo_power = 0;
 int soyo_power = 0;
 
 unsigned char mac[6];
-
 char mqtt_root[32] = "SoyoSource/";
 char clientId[12];
-
 char topic_power[40];
 char soyo_text[40];
 
@@ -157,8 +151,6 @@ bool mqttenabled = false;
 bool nulleinspeisung = false;
 
 char metername[24] = "Meter";
-
-
 char mqtt_state[20] = "disabled";
 
 // variablen Shelly 3em
@@ -168,14 +160,12 @@ int shelly_typ = 0 ;
 //nulleinspeisung
 int soyo_ac_out= 0;
 int shelly_power = 0;
-
 int meterpower = 0;
 int meterl1 = 0;
 int meterl2 = 0;
 int meterl3 = 0;
 
 bool new_connect = true;
-
 
 const char* PARAM_MESSAGE = "message";
 
@@ -248,7 +238,6 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
   if (arrived_value >= 0 && arrived_value <= 3000) {
     soyo_power = arrived_value;
   }
-  
 }
 
 
@@ -259,8 +248,7 @@ int calc_checksumme(int b1, int b2, int b3, int b4, int b5, int b6 ){
 
 
 String processor(const String& var){
-  //DEBUG_SERIAL.println(var);
-         
+  //DEBUG_SERIAL.println(var);      
   return String();
 }
 
@@ -300,9 +288,7 @@ void reconnect() {
         delay(1000);
       }
     }
-
   }
-
 
   if(!mqttenabled){
     strcpy(mqtt_state, "disabled");
@@ -352,7 +338,6 @@ void saveConfig(){
   json["meteripaddr"] = meteripaddr;
   json["meterinterval"] = meterinterval;
   
-  
   File configFile = LittleFS.open("/config.json", "w");
   if (!configFile) {
     DBG_PRINTLN("failed to open config file for writing");
@@ -371,16 +356,18 @@ void telnetConnected() {
   DBG_PRINTLN(F("Telnet connection established."));
 }
 
+
 void telnetDisconnected() {
   DBG_PRINTLN(F("Telnet connection closed."));
 }
+
 
 void disconnectClientWrapper() {
   SerialAndTelnet.disconnectClient();
 }
 
 
-// get shelly typ(3em, 3em pro, 1pm...)
+// get shelly typ(3EM PRO, 3EM, EM, 1PM)
 int getShellyTyp(){ 
   String shelly_url = "http://" + shelly_ip +  "/shelly";
   int typ = 0;
@@ -453,11 +440,9 @@ int getMeterData(int typ) {
   int power3 = 0; 
   
   DynamicJsonDocument doc(2048);
- 
   WiFiClient client_shelly;
   HTTPClient http;
    
-  
   if (typ == 1) { 
     shelly_url = "http://" + shelly_ip +  "/rpc/Shelly.GetStatus"; // Shelly PRO 3EM
   } else if(typ >= 2) {
@@ -520,8 +505,6 @@ int getMeterData(int typ) {
 
 
 
-
-
 //#################### SETUP #######################
 void setup() {
   
@@ -542,23 +525,18 @@ void setup() {
   DBG_PRINTLN("Start");
   sprintf(dbgbuffer,"ESP_%02X%02X%02X", mac[3], mac[4], mac[5]);
   DBG_PRINTLN(dbgbuffer);
-  //DEBUG_SERIAL.printf("ESP_%02X%02X%02X", mac[3], mac[4], mac[5]);
-  //DEBUG_SERIAL.println();
-
+  
   configTime(MY_TZ, MY_NTP_SERVER);
   
-  //clientId = "soyoxxxxxx";
   sprintf(clientId, "soyo_%02x%02x%02x", mac[3], mac[4], mac[5] );
   
   //mqtt_root = "SoyoSource/soyo_xxxxxx";
   strcat(mqtt_root, clientId);
   
-  
   //topic_power = "SoyoSource/soyo_xxxxxx/power";
   strcat(topic_power, mqtt_root);
   strcat(topic_power, "/power");
   
-     
   pinMode(SERIAL_COMMUNICATION_CONTROL_PIN, OUTPUT);
   digitalWrite(SERIAL_COMMUNICATION_CONTROL_PIN, RS485_RX_PIN_VALUE);
   RS485Serial.begin(4800);   // set RS485 baud
@@ -654,8 +632,6 @@ void setup() {
   ESPAsync_WMParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 5); 
 
   ESPAsync_WiFiManager wifiManager(&server, &dns);
-
-  
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   wifiManager.setConfigPortalTimeout(180);
   wifiManager.addParameter(&custom_mqtt_server);
@@ -701,7 +677,6 @@ void setup() {
       new_connect = true;
       request->send_P(200, "text/html", index_html, processor);
     });
-
 
     // Handle Web Server Events
     events.onConnect([](AsyncEventSourceClient *client){
@@ -751,13 +726,9 @@ void setup() {
         serializeJson(myJson, message);
       }
 
-      //DEBUG_SERIAL.print("myJson = " );
-      //DEBUG_SERIAL.println(message);
-
       request->send(200, "application/json", message);
     });
 
-    
     // start AP Mode
     server.on("/apmode", HTTP_GET, [](AsyncWebServerRequest *request) {
       ESPAsync_WiFiManager wifiManager(&server,&dns);
@@ -767,14 +738,12 @@ void setup() {
       request->send_P(200, "text/html", index_html, processor);
     });
 
-
     // restart system
     server.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request) {   
       DBG_PRINTLN("/restart");  
       ESP.restart();
       request->send_P(200, "text/html", index_html, processor);
     });
-
 
     server.on("/acoutput", HTTP_GET, [] (AsyncWebServerRequest *request) {
       String parm1;
@@ -830,7 +799,6 @@ void setup() {
     });
 
 
-    
     server.on("/checkbox", HTTP_GET, [] (AsyncWebServerRequest *request) {
       String checkbox_id;
       String checkbox_value;
@@ -867,8 +835,7 @@ void setup() {
             nulleinspeisung = false;
           }
         }
-      }
-      
+      }    
       request->send_P(200, "text/html", index_html, processor);
     });
 
@@ -881,23 +848,17 @@ void setup() {
       strcat(timer1_time, value.c_str());     
 
       value = request->getParam("w1")->value();
-      timer1_watt = atoi(value.c_str());
-      //memset(watt_1, 0, sizeof(watt_1)); 
-      //strcat(watt_1, value.c_str());     
+      timer1_watt = atoi(value.c_str()); 
     
       value = request->getParam("t2")->value();
       memset(timer2_time, 0, sizeof(timer2_time)); 
       strcat(timer2_time, value.c_str());     
 
       value = request->getParam("w2")->value();  
-      timer2_watt = atoi(value.c_str());
-      //memset(watt_2, 0, sizeof(watt_2)); 
-      //strcat(watt_2, value.c_str());     
+      timer2_watt = atoi(value.c_str());  
                
       value = request->getParam("maxwatt")->value();
-      maxwatt = atoi(value.c_str());
-      //memset(maxwatt, 0, sizeof(maxwatt)); 
-      //strcat(maxwatt, value.c_str());     
+      maxwatt = atoi(value.c_str()); 
 
       value = request->getParam("meteripaddr")->value();  
       memset(meteripaddr, 0, sizeof(meteripaddr)); 
@@ -927,8 +888,6 @@ void setup() {
 
     digitalWrite(SERIAL_COMMUNICATION_CONTROL_PIN, RS485_TX_PIN_VALUE); // RS485 Modul -> set board to transmit 
   }
-
-  
   // end setup()  
 }
 
@@ -936,7 +895,6 @@ void setup() {
 void loop() {
   SerialAndTelnet.handle();
   
- 
   if(mqttenabled){
     if (!client.connected()) {
       DBG_PRINTLN("lost mqtt connection -> start reconncect");
@@ -945,7 +903,6 @@ void loop() {
     client.loop(); 
   }
 
-  
   // send power to SoyoSource every 1000 ms
   if ((millis() - lastTimeSoyo) > timerDelaySoyo) {
 
@@ -1009,8 +966,6 @@ void loop() {
     lastTimeSoyo = millis();
   }
 
-
- 
   // timer to get Shelly3EM data
   if ((millis() - lastMeterinterval) > meterinterval) {  
     if (shelly_typ > 0){
@@ -1021,7 +976,6 @@ void loop() {
     }
     lastMeterinterval = millis();
   }
-
 
   //timer to update soyo power nulleinspeisung (10 sek)
   if ((millis() - lastTimeNES) > timerDelayNES) { 
@@ -1054,7 +1008,6 @@ void loop() {
     }
     lastTimeNES = millis();
   }
-
 
 }
 
