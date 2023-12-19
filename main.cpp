@@ -86,9 +86,6 @@ char uptime_str[37];
 unsigned long lastTimeSoyo = 0;  
 unsigned long timerDelaySoyo = 800;  // send readings timer
 
-unsigned long lastTimeUptime = 0;  
-unsigned long timerDelayUptime = 60000;  // send readings timer
-
 unsigned long lastMeterinterval = 0;  
 unsigned long meterinterval = 5000;  // read shelly timer
 
