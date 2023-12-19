@@ -80,13 +80,13 @@ char uptime_str[37];
 
 //Timer
 unsigned long lastTimeSoyo = 0;  
-unsigned long timerDelaySoyo = 800;  // send readings timer
+unsigned long timerDelaySoyo = 800;  
 
 unsigned long lastMeterinterval = 0;  
-unsigned long meterinterval = 5000;  // read shelly timer
+unsigned long meterinterval = 5000;
 
 unsigned long lastTimeNES = 0;  
-unsigned long timerDelayNES = 10000;  // read shelly timer
+unsigned long timerDelayNES = 10000;
 
 String msg = "";
 char msgData[64];
