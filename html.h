@@ -43,10 +43,18 @@ const char index_html[] PROGMEM = R"rawliteral(
             transition: 0.2s all;
           }
     
-    .flex-container {
+    .flexBox1 {
       display: flex;
       flex-direction: row;
       justify-content: space-between;
+      align-items: center;
+      text-align: center;
+    }
+
+    .flexBox2 {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
       align-items: center;
       text-align: center;
     }
@@ -121,7 +129,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       color: #999999;  
     }
 
-    .contentFlex{
+    .detailsFlexBox{
       display: flex;
       flex-direction: row;
       justify-content:flex-start;
@@ -175,11 +183,11 @@ const char index_html[] PROGMEM = R"rawliteral(
               </b>
             </summary>
             <hr>
-            <div class="contentFlex">
+            <div class="detailsFlexBox">
               <div class="cellStyle1">Client ID:</div>
               <div id="CLIENTID"></div>
             </div>
-            <div class="contentFlex">
+            <div class="detailsFlexBox">
               <div class="cellStyle1">Wifi RSSI:</div>
               <div> <span><span id="WIFIRSSI"></span> dB</span></div>
             </div>
@@ -206,20 +214,16 @@ const char index_html[] PROGMEM = R"rawliteral(
           </summary>
           <hr>
           <span class="title1">Manuelle Vorgabe</span>
-          <table class="style2">
-            <tbody>
-              <tr>
-                <td style="text-align: center;"><button type="button" onclick="set_power('/m1');" class="btn">- 1</button></td>
-                <td style="text-align: center;">Set AC Output</td>
-                <td style="text-align: center;"><button type="button" onclick="set_power('/p1');" class="btn">+ 1</button></td>
-              </tr>
-              <tr>
-                <td style="text-align: center;"><button type="button" onclick="set_power('/m10');" class="btn">- 10</button></td>
-                <td style="text-align: center;"><button type="button" onclick="set_power('/s0');;" class="btn">0</button></td>
-                <td style="text-align: center;"><button type="button" onclick="set_power('/p10');" class="btn">+ 10</button></td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="flexBox2">
+            <div><button type="button" onclick="set_power('/m1');" class="btn">- 1</button></div>
+            <div>Set AC Output</div>
+            <div><button type="button" onclick="set_power('/p1');" class="btn">+ 1</button></div>
+          </div>
+          <div class="flexBox2">
+            <div><button type="button" onclick="set_power('/m10');" class="btn">- 10</button></div>
+            <div><button type="button" onclick="set_power('/s0');;" class="btn">0</button></div>
+            <div><button type="button" onclick="set_power('/p10');" class="btn">+ 10</button></div>
+          </div>
         </details>
       </div>
     </div>
@@ -240,25 +244,25 @@ const char index_html[] PROGMEM = R"rawliteral(
             </b>
           </summary>
           <hr>
-          <div class="contentFlex">
+          <div class="detailsFlexBox">
             <div class="cellStyle1">L1 [W]:</div>
             <div id="METERL1"></div>
           </div>
-          <div class="contentFlex">
+          <div class="detailsFlexBox">
             <div class="cellStyle1">L2 [W]:</div>
             <div id="METERL2"></div>
           </div>
-          <div class="contentFlex">
+          <div class="detailsFlexBox">
             <div class="cellStyle1">L3 [W]:</div>
             <div id="METERL3"></div>
           </div>
           <hr>
-          <div class="contentFlex">
+          <div class="detailsFlexBox">
             <div class="cellStyle1">Interval [ms]:</div>
             <div><input type="number" min="500" max="5000" id="METERINTERVAL" /></div>
           </div>
           <hr>
-          <div class="contentFlex">
+          <div class="detailsFlexBox">
             <div class="cellStyle1">Meter Ip:</div>
             <div><input type='text' id='METERIP' placeholder='xxx.xxx.xxx.xxx' required pattern='^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$'/></div>
           </div>
@@ -282,11 +286,11 @@ const char index_html[] PROGMEM = R"rawliteral(
             </b>
           </summary>
           <hr>
-          <div class="contentFlex">
+          <div class="detailsFlexBox">
             <div class="cellStyle1">Max Power [W]:</div>
             <div><input type="number" min="0" max="2000" id="MAXWATTINPUT"/></div>
           </div>
-          <div class="contentFlex">
+          <div class="detailsFlexBox">
             <div>Aktiv:</div>
             <div><input type="checkbox" onchange="toggleCheckbox(this)" id="CBNULL"/></div>
           </div>
@@ -307,7 +311,7 @@ const char index_html[] PROGMEM = R"rawliteral(
           <div class="fontBold">Subscribe Topics</div>
           <div class="fontNormal"><span><span id="MQTTROOT2"></span>/power</span></div>
           <br>
-          <div class="contentFlex">
+          <div class="detailsFlexBox">
             <div style="padding-right: 50px;">Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBMQTTSTATE" /></div>
             <div>Status: </label><span id="MQTTSTATE"></span></div>
           </div>
@@ -322,12 +326,12 @@ const char index_html[] PROGMEM = R"rawliteral(
         <details>
           <summary><b>Timer</b></summary>
           <hr>
-          <div class="contentFlex">
+          <div class="detailsFlexBox">
             <div>Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBTIMER1" /></div>
             <div>Timer 1: <input type="time" id="TIMER1TIME" /></div>
             <div>Watt: <input type="number" min="0" max="2000" id="TIMER1WATT"/></div>
           </div>
-          <div class="contentFlex">
+          <div class="detailsFlexBox">
             <div>Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBTIMER2" /></div>
             <div>Timer 2: <input type="time" id="TIMER2TIME" /></div>
             <div>Watt: <input type="number" min="0" max="2000" id="TIMER2WATT"/></div>
@@ -340,7 +344,7 @@ const char index_html[] PROGMEM = R"rawliteral(
   <div class="content">
     <div class="card-grid">
       <div class="card">
-        <div class="flex-container">
+        <div class="flexBox1">
             <button class="btn" type="button" onclick="apmode();" style=" font-size: 10px; width: auto; margin: 5px 5px 5px 5px; background-color:#767676;">Delete WiFi Settings</button>
             <button class="btn" type="button" onclick="restart();" style=" font-size: 10px; width: auto; margin: 5px 5px 5px 5px; background-color:#767676;">Restart</button>
             <a href="update"><button class="btn" type="button" style="font-size: 10px; width: auto; margin: 5px 5px 5px 5px; background-color:#767676;"> FW Update</button></a>
