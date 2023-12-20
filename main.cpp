@@ -49,7 +49,6 @@ TelnetSpy SerialAndTelnet;
 // sprintf(dbgbuffer,"ESP_%02X%02X%02X", mac[3], mac[4], mac[5]);
 // DBG_PRINTLN(dbgbuffer);
 //*****************************************************************************
-
 char dbgbuffer[128]; 
 
 #define RXPin        D1  // Serial Receive pin (D1)
@@ -124,10 +123,6 @@ long rssi;
 
 time_t now;                       
 tm timeInfo;
-
-
-const char* shelly3empro;
-const char* shelly3em;
 
 const int shelly_3em_pro = 1;
 const int shelly_3em = 2;
@@ -506,10 +501,6 @@ int getMeterData(int typ) {
 
 //#################### SETUP #######################
 void setup() {
-  
-  //value = "value='%S'"; //neu 13.12.2023 wegen Compiler warnings
-  shelly3empro = "Shelly 3EM Pro";
-  shelly3em = "Shelly 3EM";
 
   SerialAndTelnet.setWelcomeMsg(F("Welcome to the TelnetSpy example\r\n\n"));
   SerialAndTelnet.setCallbackOnConnect(telnetConnected);

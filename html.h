@@ -121,8 +121,34 @@ const char index_html[] PROGMEM = R"rawliteral(
       color: #999999;  
     }
 
+    .contentFlex{
+      display: flex;
+      flex-direction: row;
+      justify-content:flex-start;
+      align-items: center;
+      gap: 10px;
+      margin-left: 10px;
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
 
-       
+    .fontBold{
+      font-weight: bold;
+      text-align: left;
+      margin-left: 10px;
+    }
+
+    .fontNormal{
+      font-weight: normal;
+      text-align: left;
+      margin-left: 10px;
+    }
+
+    .cellStyle1{
+      width: 120px;
+      text-align: left;
+    }
+
   </style>
 
 </head>
@@ -149,18 +175,14 @@ const char index_html[] PROGMEM = R"rawliteral(
               </b>
             </summary>
             <hr>
-            <table>
-              <tbody>
-                <tr>
-                  <td width="120px">Client ID:</td>
-                  <td id="CLIENTID"></td>
-                </tr>
-                <tr>
-                  <td width="120px">Wifi RSSI:</td>
-                  <td><span><span id="WIFIRSSI"></span> dB</span></td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="contentFlex">
+              <div class="cellStyle1">Client ID:</div>
+              <div id="CLIENTID"></div>
+            </div>
+            <div class="contentFlex">
+              <div class="cellStyle1">Wifi RSSI:</div>
+              <div> <span><span id="WIFIRSSI"></span> dB</span></div>
+            </div>
         </details>
       </div>
     </div>
@@ -218,36 +240,28 @@ const char index_html[] PROGMEM = R"rawliteral(
             </b>
           </summary>
           <hr>
-          <table>
-            <tr>
-              <td width="120px">L1 [W]: </td>
-              <td><span id="METERL1"></span></td>
-            </tr>
-            <tr>
-              <td width="120px">L2 [W]: </td>
-              <td><span id="METERL2"></span></td>
-            </tr>
-            <tr>
-              <td width="120px">L3 [W]: </td>
-              <td><span id="METERL3"></span></td>
-            </tr>
-          </table>
+          <div class="contentFlex">
+            <div class="cellStyle1">L1 [W]:</div>
+            <div id="METERL1"></div>
+          </div>
+          <div class="contentFlex">
+            <div class="cellStyle1">L2 [W]:</div>
+            <div id="METERL2"></div>
+          </div>
+          <div class="contentFlex">
+            <div class="cellStyle1">L3 [W]:</div>
+            <div id="METERL3"></div>
+          </div>
           <hr>
-          <table>
-            <tbody>
-              <tr>
-                <td width="120px"><span>Interval [ms]:</span></td>
-                <td><span><input type="number" min="500" max="5000" id="METERINTERVAL" /></span></td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="contentFlex">
+            <div class="cellStyle1">Interval [ms]:</div>
+            <div><input type="number" min="500" max="5000" id="METERINTERVAL" /></div>
+          </div>
           <hr>
-          <table>
-            <tr>
-              <td width="120px">Meter Ip:</td>
-              <td><span><input type='text' id='METERIP' placeholder='xxx.xxx.xxx.xxx' required pattern='^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$'/></span></td>
-            </tr>
-          </table>
+          <div class="contentFlex">
+            <div class="cellStyle1">Meter Ip:</div>
+            <div><input type='text' id='METERIP' placeholder='xxx.xxx.xxx.xxx' required pattern='^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$'/></div>
+          </div>
         </details>
       </div>
     </div>
@@ -268,55 +282,35 @@ const char index_html[] PROGMEM = R"rawliteral(
             </b>
           </summary>
           <hr>
-          <table>
-            <tbody>
-              <tr>
-                <td width="120px"><span>Max Power [W]:</span></td>
-                <td><input type="number" min="0" max="2000" id="MAXWATTINPUT"/></td>
-              </tr>
-              <tr>
-                <td><span>Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBNULL"/></span></td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="contentFlex">
+            <div class="cellStyle1">Max Power [W]:</div>
+            <div><input type="number" min="0" max="2000" id="MAXWATTINPUT"/></div>
+          </div>
+          <div class="contentFlex">
+            <div>Aktiv:</div>
+            <div><input type="checkbox" onchange="toggleCheckbox(this)" id="CBNULL"/></div>
+          </div>
         </details>
       </div>
     </div>
   </div>
 
-  <div class="content">
+   <div class="content">
     <div class="card-grid">
       <div class="card">
         <details>
           <summary><b>MQTT</b></summary>
           <hr>
-          <table>
-            <tbody>
-              <tr>
-                <th style="text-align: left">Publish Topics</th>
-              </tr>
-              <tr>
-                <td style="text-align: left"><span id="MQTTROOT1"></span>/power</td>
-              </tr>
-              <tr>
-                <td> </td>
-              </tr>
-              <tr>
-                <th style="text-align: left">Subscribe Topics </th>
-              </tr>
-              <tr>
-                <td style="text-align: left"><span id="MQTTROOT2"></span>/power</td>
-              </tr>
-              <tr>
-                <td> </td>
-              </tr>
-              <tr>
-                <td><label>Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBMQTTSTATE" /></label></td>
-                <td><label>Status: </label><span id="MQTTSTATE"></span></td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="fontBold">Publish Topics</div>
+          <div class="fontNormal"><span><span id="MQTTROOT1"></span>/power</span></div>
+          <br>
+          <div class="fontBold">Subscribe Topics</div>
+          <div class="fontNormal"><span><span id="MQTTROOT2"></span>/power</span></div>
+          <br>
+          <div class="contentFlex">
+            <div style="padding-right: 50px;">Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBMQTTSTATE" /></div>
+            <div>Status: </label><span id="MQTTSTATE"></span></div>
+          </div>
         </details>
       </div>
     </div>
@@ -328,20 +322,16 @@ const char index_html[] PROGMEM = R"rawliteral(
         <details>
           <summary><b>Timer</b></summary>
           <hr>
-          <table class="font2 left">
-            <tbody>
-              <tr>
-                <td><label>Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBTIMER1" /></label></td>
-                <td><label>Time 1: <input type="time" id="TIMER1TIME" /></label></td>
-                <td><label>Leistung [W] <input type="number" min="0" max="2000" id="TIMER1WATT" /></label></td>
-              </tr>
-              <tr>
-                <td><label>Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBTIMER2" /></label></td>
-                <td><label>Time 2: <input type="time" id="TIMER2TIME" /></label></td>
-                <td><label>Leistung [W] <input type="number" min="0" max="2000" id='TIMER2WATT' /></label></td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="contentFlex">
+            <div>Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBTIMER1" /></div>
+            <div>Timer 1: <input type="time" id="TIMER1TIME" /></div>
+            <div>Watt: <input type="number" min="0" max="2000" id="TIMER1WATT"/></div>
+          </div>
+          <div class="contentFlex">
+            <div>Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBTIMER2" /></div>
+            <div>Timer 2: <input type="time" id="TIMER2TIME" /></div>
+            <div>Watt: <input type="number" min="0" max="2000" id="TIMER2WATT"/></div>
+          </div>       
         </details>
       </div>
     </div>
