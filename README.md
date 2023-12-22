@@ -57,7 +57,7 @@ Hier muss 'Bat AutoLimit Grid' auf Y stehen
   
 
 ## Webif
-<img src="https://github.com/matlen67/soyosource-powercontroller/blob/main/image/webif_231219_0621.png" width="256">
+<img src="https://github.com/matlen67/soyosource-powercontroller/blob/main/image/webif_231222_1151.png" width="256"> <img src="https://github.com/matlen67/soyosource-powercontroller/blob/main/image/energiefluss.png" width="256">
 
 
 
