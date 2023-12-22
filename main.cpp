@@ -711,7 +711,7 @@ void setup() {
         myJson["METERL1"] = meterl1;
         myJson["METERL2"] = meterl2;
         myJson["METERL3"] = meterl3;
-        myJson["MAXWATT"] = maxwatt;
+        //myJson["MAXWATT"] = maxwatt;
 
         serializeJson(myJson, message);
       }
@@ -977,14 +977,14 @@ void loop() {
         
       if(shelly_power > 20){  
         soyo_ac_out += shelly_power - 10;
-
         if(soyo_ac_out >= limit){
           soyo_ac_out = limit;
         } 
       } 
 
+      
       if(shelly_power < 0){
-        soyo_ac_out -= shelly_power + 10;
+        soyo_ac_out += shelly_power;
 
         if(soyo_ac_out < 0){
           soyo_ac_out = 0;

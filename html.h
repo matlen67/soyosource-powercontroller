@@ -171,16 +171,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       <div class="card">
         <details>
             <summary>
-              <b>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td width="150px">ESP Infos</td>
-                      <td class='alnright'><span id="UPTIME"></span></td>
-                    </tr>
-                  </tbody>  
-                </table>
-              </b>
+              <b>ESP Infos</b>
             </summary>
             <hr>
             <div class="detailsFlexBox">
@@ -190,6 +181,10 @@ const char index_html[] PROGMEM = R"rawliteral(
             <div class="detailsFlexBox">
               <div class="cellStyle1">Wifi RSSI:</div>
               <div> <span><span id="WIFIRSSI"></span> dB</span></div>
+            </div>
+            <div class="detailsFlexBox">
+              <div class="cellStyle1">Uptime:</div>
+              <div id="UPTIME"></div>
             </div>
         </details>
       </div>
@@ -236,10 +231,12 @@ const char index_html[] PROGMEM = R"rawliteral(
           <summary>
             <b>
               <table>
-                <tr>
-                  <td width="180px"><span id="METERNAME">no device</span></td>
-                  <td class='alnright'><span id="METERPOWER"></span> W</span></td>
-                </tr>
+                <tbody>
+                  <tr>
+                    <td width="180px"><span id="METERNAME">no device</span></td>
+                    <td class='alnright'><span id="METERPOWER"></span> W</span></td>
+                  </tr>
+                </tbody>
               </table>
             </b>
           </summary>
@@ -276,14 +273,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       <div class="card">
         <details>
           <summary>
-            <b>
-              <table>
-                <tr>
-                  <td width="180px">Nulleinspeisung</td>
-                  <td class='alnright'><span id="MAXWATT"></span> W</span></td>
-                </tr>
-              </table>
-            </b>
+            <b>Nulleinspeisung</b>
           </summary>
           <hr>
           <div class="detailsFlexBox">
@@ -299,11 +289,13 @@ const char index_html[] PROGMEM = R"rawliteral(
     </div>
   </div>
 
-   <div class="content">
+  <div class="content">
     <div class="card-grid">
       <div class="card">
         <details>
-          <summary><b>MQTT</b></summary>
+          <summary>
+            <b>MQTT</b>
+          </summary>
           <hr>
           <div class="fontBold">Publish Topics</div>
           <div class="fontNormal"><span><span id="MQTTROOT1"></span>/power</span></div>
@@ -324,7 +316,9 @@ const char index_html[] PROGMEM = R"rawliteral(
     <div class="card-grid">
       <div class="card">
         <details>
-          <summary><b>Timer</b></summary>
+          <summary>
+            <b>Timer</b>
+          </summary>
           <hr>
           <div class="detailsFlexBox">
             <div>Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBTIMER1" /></div>
@@ -400,7 +394,6 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("METERL1").innerHTML        = data.METERL1
       document.getElementById("METERL2").innerHTML        = data.METERL2
       document.getElementById("METERL3").innerHTML        = data.METERL3
-      document.getElementById("MAXWATT").innerHTML        = data.MAXWATT
     });
   } 
 </script>
