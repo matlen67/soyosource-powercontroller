@@ -948,17 +948,11 @@ void loop() {
     
     if(soyo_power != old_soyo_power) {  // nur für Debug, damit nur Änderungen ausgegeben werden
       old_soyo_power = soyo_power;
-      
-      DBG_PRINT("new soyo_power = ");
-      DBG_PRINT(soyo_power);
-      DBG_PRINT(" ( ");
-      sprintf(dbgbuffer,"%02X %02X %02X %02X %02X %02X %02X %02X",soyo_power_data[0],soyo_power_data[1],soyo_power_data[2],soyo_power_data[3],soyo_power_data[4],soyo_power_data[5],soyo_power_data[6],soyo_power_data[7]);
-      DBG_PRINT(dbgbuffer);
-      DBG_PRINT(" ) ");
-      DBG_PRINTLN();
+      sprintf(dbgbuffer,"new soyo_power = %i ( %02X %02X %02X %02X %02X %02X %02X %02X )",soyo_power, soyo_power_data[0],soyo_power_data[1],soyo_power_data[2],soyo_power_data[3],soyo_power_data[4],soyo_power_data[5],soyo_power_data[6],soyo_power_data[7]);
+      DBG_PRINTLN(dbgbuffer);
     }
 
-     if(mqttenabled){
+    if(mqttenabled){
       sprintf(msgData, "%d", soyo_power);
       client.publish(topic_power, msgData);
     }
