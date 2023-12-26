@@ -153,7 +153,12 @@ const char index_html[] PROGMEM = R"rawliteral(
     }
 
     .cellStyle1{
-      width: 120px;
+      width: 140px;
+      text-align: left;
+    }
+
+    .cellStyle2{
+      width: 80px;
       text-align: left;
     }
 
@@ -211,7 +216,7 @@ const char index_html[] PROGMEM = R"rawliteral(
           <span class="title1">Manuelle Vorgabe</span>
           <div class="flexBox2">
             <div><button type="button" onclick="set_power('/m1');" class="btn">- 1</button></div>
-            <div>Set AC Output</div>
+            <div>Set Output [W]</div>
             <div><button type="button" onclick="set_power('/p1');" class="btn">+ 1</button></div>
           </div>
           <div class="flexBox2">
@@ -242,15 +247,15 @@ const char index_html[] PROGMEM = R"rawliteral(
           </summary>
           <hr>
           <div class="detailsFlexBox">
-            <div class="cellStyle1">L1 [W]:</div>
+            <div class="cellStyle2">L1 [W]:</div>
             <div id="METERL1"></div>
           </div>
           <div class="detailsFlexBox">
-            <div class="cellStyle1">L2 [W]:</div>
+            <div class="cellStyle2">L2 [W]:</div>
             <div id="METERL2"></div>
           </div>
           <div class="detailsFlexBox">
-            <div class="cellStyle1">L3 [W]:</div>
+            <div class="cellStyle2">L3 [W]:</div>
             <div id="METERL3"></div>
           </div>
           <hr>
@@ -277,8 +282,12 @@ const char index_html[] PROGMEM = R"rawliteral(
           </summary>
           <hr>
           <div class="detailsFlexBox">
-            <div class="cellStyle1">Max Power [W]:</div>
+            <div class="cellStyle1">Max Output [W]:</div>
             <div><input type="number" min="0" max="2000" id="MAXWATTINPUT"/></div>
+          </div>
+          <div class="detailsFlexBox">
+            <div class="cellStyle1">Interval [ms]:</div>
+            <div><input type="number" min="500" max="30000" id="NULLINTERVAL" /></div>
           </div>
           <div class="detailsFlexBox">
             <div>Aktiv:</div>
@@ -367,6 +376,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("METERIP").value            = data_start.METERIP
       document.getElementById("METERINTERVAL").value      = data_start.METERINTERVAL
       document.getElementById("MAXWATTINPUT").value       = data_start.MAXWATTINPUT
+      document.getElementById("NULLINTERVAL").value       = data_start.NULLINTERVAL
       document.getElementById("TIMER1TIME").value         = data_start.TIMER1TIME
       document.getElementById("TIMER2TIME").value         = data_start.TIMER2TIME
       document.getElementById("TIMER1WATT").value         = data_start.TIMER1WATT
@@ -455,10 +465,11 @@ const char index_html[] PROGMEM = R"rawliteral(
     var meteripaddr = document.getElementById("METERIP").value;
     var meterinterval = document.getElementById("METERINTERVAL").value;
     var maxwatt = document.getElementById("MAXWATTINPUT").value;
+    var nullinterval = document.getElementById("NULLINTERVAL").value;
     
     let text = "Save Settings!\nPress OK or Cancel.";
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/savesettings?t1=" + timer1_time + "&w1=" + timer1_watt + "&t2=" + timer2_time + "&w2=" + timer2_watt + "&meteripaddr=" + meteripaddr +  "&meterinterval=" + meterinterval +"&maxwatt=" + maxwatt , true);
+    xhr.open("GET", "/savesettings?t1=" + timer1_time + "&w1=" + timer1_watt + "&t2=" + timer2_time + "&w2=" + timer2_watt + "&meteripaddr=" + meteripaddr + "&meterinterval=" + meterinterval +"&maxwatt=" + maxwatt + "&nullinterval=" + nullinterval , true);
     xhr.send();    
   };
 

@@ -78,14 +78,17 @@ uint16_t Uptime_TotalDays = 0U; // Total Uptime Days
 char uptime_str[37];  
 
 //Timer
-unsigned long lastTimeSoyo = 0;  
-unsigned long timerDelaySoyo = 800;  
+unsigned long timerSoyoSource = 500;
+unsigned long lastTimerSoyoSource = 0;  
 
-unsigned long lastMeterinterval = 0;  
 unsigned long meterinterval = 5000;
+unsigned long lastMeterinterval = 0;  
 
-unsigned long lastTimeNES = 0;  
-unsigned long timerDelayNES = 10000;
+unsigned long nullinterval = 10000;
+unsigned long lastNullinterval = 0;  
+
+unsigned long nullFineInterval = 500;
+unsigned long lastNullFineInterval = 0;  
 
 String msg = "";
 char msgData[64];
@@ -153,7 +156,6 @@ String shelly_ip = "";
 int shelly_typ = 0 ; 
 
 //nulleinspeisung
-int soyo_ac_out= 0;
 int shelly_power = 0;
 int meterpower = 0;
 int meterl1 = 0;
@@ -236,11 +238,6 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
 }
 
 
-int calc_checksumme(int b1, int b2, int b3, int b4, int b5, int b6 ){
-  int calc = (0xFF - b1 - b2 - b3 - b4 - b5 - b6) % 256;
-  return calc & 0xFF;
-}
-
 
 String processor(const String& var){
   //DEBUG_SERIAL.println(var);      
@@ -288,7 +285,12 @@ void reconnect() {
   if(!mqttenabled){
     strcpy(mqtt_state, "disabled");
   }
-  
+}
+
+
+int calc_checksumme(int b1, int b2, int b3, int b4, int b5, int b6 ){
+  int calc = (0xFF - b1 - b2 - b3 - b4 - b5 - b6) % 256;
+  return calc & 0xFF;
 }
 
 
@@ -332,6 +334,7 @@ void saveConfig(){
   json["maxwatt"] = maxwatt;
   json["meteripaddr"] = meteripaddr;
   json["meterinterval"] = meterinterval;
+  json["nullinterval"] = nullinterval;
   
   File configFile = LittleFS.open("/config.json", "w");
   if (!configFile) {
@@ -604,6 +607,9 @@ void setup() {
           if(json.containsKey("meterinterval")){
             meterinterval = json["meterinterval"]; 
           }
+          if(json.containsKey("nullinterval")){
+            nullinterval = json["nullinterval"]; 
+          }
 
         } else {
           DBG_PRINTLN("failed to load json config");
@@ -692,6 +698,7 @@ void setup() {
         myJson["CLIENTID"] = clientId;
         myJson["METERNAME"] = metername;
         myJson["MAXWATTINPUT"] = maxwatt;
+        myJson["NULLINTERVAL"] = nullinterval;
         myJson["METERIP"] = meteripaddr;
         myJson["METERINTERVAL"] = meterinterval;
         myJson["TIMER1TIME"] = timer1_time;
@@ -823,6 +830,7 @@ void setup() {
             nulleinspeisung = true;
           } else {
             nulleinspeisung = false;
+            soyo_power = 0;
           }
         }
       }    
@@ -856,6 +864,9 @@ void setup() {
 
       value =  request->getParam("meterinterval")->value();
       meterinterval = atol(value.c_str());
+
+      value =  request->getParam("nullinterval")->value();
+      nullinterval = atol(value.c_str());
       
       saveConfig(); 
 
@@ -881,6 +892,38 @@ void setup() {
   // end setup()  
 }
 
+void checkTimer(){
+  
+  time(&now);
+  localtime_r(&now, &timeInfo);
+
+  if (checkboxT1 == true){      
+      int t1_hour = String(timer1_time).substring(0,2).toInt();
+      int t1_min = String(timer1_time).substring(3).toInt();
+
+      if((timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 1) ){
+        soyo_power = timer1_watt;
+        //sprintf(msgData, "%d", soyo_power);
+        //if(mqttenabled){
+        //  client.publish(topic_power, msgData);
+        //}
+      }
+    }
+
+    if (checkboxT2 == true){    
+      int t2_hour = String(timer2_time).substring(0,2).toInt();
+      int t2_min = String(timer2_time).substring(3).toInt();  
+      
+      if((timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 1)){
+        soyo_power = timer2_watt;
+        //sprintf(msgData, "%d", soyo_power);
+        //if(mqttenabled){
+          //client.publish(topic_power, msgData);
+        //}
+      }
+    }
+}
+
 
 void loop() {
   SerialAndTelnet.handle();
@@ -893,24 +936,17 @@ void loop() {
     client.loop(); 
   }
 
-  // send power to SoyoSource every 1000 ms
-  if ((millis() - lastTimeSoyo) > timerDelaySoyo) {
+  // send current power to SoyoSource every 500 ms
+  if ((millis() - lastTimerSoyoSource) > timerSoyoSource) {
 
-    myUptime();
     setSoyoPowerData(soyo_power);
     
-    if(mqttenabled){
-      sprintf(msgData, "%d", soyo_power);
-      client.publish(topic_power, msgData);
-    }
-
-    // send data to RS485 
-    for(int i=0; i<8; i++){
-      RS485Serial.write(soyo_power_data[i]);
+    for(int i=0; i<8; i++) {
+      RS485Serial.write(soyo_power_data[i]);  // send data to RS485 
       //DBG_PRINTLN(soyo_power_data[i], HEX);
     }
     
-    if(soyo_power != old_soyo_power){
+    if(soyo_power != old_soyo_power) {  // nur für Debug, damit nur Änderungen ausgegeben werden
       old_soyo_power = soyo_power;
       
       DBG_PRINT("new soyo_power = ");
@@ -921,82 +957,76 @@ void loop() {
       DBG_PRINT(" ) ");
       DBG_PRINTLN();
     }
+
+     if(mqttenabled){
+      sprintf(msgData, "%d", soyo_power);
+      client.publish(topic_power, msgData);
+    }
             
     if(checkboxT1 || checkboxT2){
-      time(&now);
-      localtime_r(&now, &timeInfo);
-    }
-      
-    if (checkboxT1 == true){      
-      int t1_hour = String(timer1_time).substring(0,2).toInt();
-      int t1_min = String(timer1_time).substring(3).toInt();
-
-      if((timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 1) ){
-        soyo_power = timer1_watt;
-        sprintf(msgData, "%d", soyo_power);
-        if(mqttenabled){
-          client.publish(topic_power, msgData);
-        }
-      }
+      checkTimer();
     }
 
-    if (checkboxT2 == true){    
-      int t2_hour = String(timer2_time).substring(0,2).toInt();
-      int t2_min = String(timer2_time).substring(3).toInt();  
+    myUptime();
       
-      if((timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 1)){
-        soyo_power = timer2_watt;
-        sprintf(msgData, "%d", soyo_power);
-        if(mqttenabled){
-          client.publish(topic_power, msgData);
-        }
-      }
-    }
-    
-    lastTimeSoyo = millis();
+    lastTimerSoyoSource = millis();
   }
+
 
   // timer to get Shelly3EM data
   if ((millis() - lastMeterinterval) > meterinterval) {  
+
     if (shelly_typ > 0){
       shelly_power = getMeterData(shelly_typ);
     } else{
       shelly_typ = getShellyTyp();
       DBG_PRINTLN("Kein Shelly erkannt! Bitte IP eintragen, speichern und ESP neu starten.");
     }
+
     lastMeterinterval = millis();
   }
 
-  //timer to update soyo power nulleinspeisung (10 sek)
-  if ((millis() - lastTimeNES) > timerDelayNES) { 
 
-    if(nulleinspeisung){      
-      int limit = maxwatt;
-      DBG_PRINT("nulleinspeisung limit = ");
-      DBG_PRINTLN(limit);
-        
+  // timer to manage Nulleinspeisung  +/- 20 Watt
+  if ((millis() - lastNullinterval) > nullinterval) { 
+   
+    if(nulleinspeisung){       
+             
       if(shelly_power > 20){  
-        soyo_ac_out += shelly_power - 10;
-        if(soyo_ac_out >= limit){
-          soyo_ac_out = limit;
+        soyo_power += shelly_power + 5; // + 5 Leistungsverluste SoyoSource! testen und anpassen
+        if(soyo_power > maxwatt){
+          soyo_power = maxwatt;
         } 
       } 
-
-      
+  
       if(shelly_power < 0){
-        soyo_ac_out += shelly_power;
+        soyo_power += shelly_power; // += auch wenn meter im minus (-50) ist!
 
-        if(soyo_ac_out < 0){
-          soyo_ac_out = 0;
+        if(soyo_power < 0){
+          soyo_power = 0;
         } 
       }
-
-      DBG_PRINT("nulleinspeisung soyo_Ac_out = ");
-      DBG_PRINTLN(soyo_ac_out);
-
-      soyo_power = soyo_ac_out;
     }
-    lastTimeNES = millis();
+
+    lastNullinterval = millis();
+  }
+
+
+   //test timer Feinausregelung Nulleinspeisung  +/- 5 Watt (500ms)
+  if ((millis() - lastNullFineInterval) > nullFineInterval) { 
+
+    if(nulleinspeisung){
+
+      if(shelly_power >= 5 && shelly_power <= 20){  
+        soyo_power += 1;
+      } 
+      
+      if(shelly_power <= -5 ){
+        soyo_power -= 1; 
+      }
+    }
+
+    lastNullFineInterval = millis();
   }
 
 }
