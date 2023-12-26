@@ -501,6 +501,38 @@ int getMeterData(int typ) {
 }
 
 
+void checkTimer(){
+  
+  time(&now);
+  localtime_r(&now, &timeInfo);
+
+  if (checkboxT1 == true){      
+      int t1_hour = String(timer1_time).substring(0,2).toInt();
+      int t1_min = String(timer1_time).substring(3).toInt();
+
+      if((timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 1) ){
+        soyo_power = timer1_watt;
+        //sprintf(msgData, "%d", soyo_power);
+        //if(mqttenabled){
+        //  client.publish(topic_power, msgData);
+        //}
+      }
+    }
+
+    if (checkboxT2 == true){    
+      int t2_hour = String(timer2_time).substring(0,2).toInt();
+      int t2_min = String(timer2_time).substring(3).toInt();  
+      
+      if((timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 1)){
+        soyo_power = timer2_watt;
+        //sprintf(msgData, "%d", soyo_power);
+        //if(mqttenabled){
+          //client.publish(topic_power, msgData);
+        //}
+      }
+    }
+}
+
 
 //#################### SETUP #######################
 void setup() {
@@ -890,38 +922,6 @@ void setup() {
     digitalWrite(SERIAL_COMMUNICATION_CONTROL_PIN, RS485_TX_PIN_VALUE); // RS485 Modul -> set board to transmit 
   }
   // end setup()  
-}
-
-void checkTimer(){
-  
-  time(&now);
-  localtime_r(&now, &timeInfo);
-
-  if (checkboxT1 == true){      
-      int t1_hour = String(timer1_time).substring(0,2).toInt();
-      int t1_min = String(timer1_time).substring(3).toInt();
-
-      if((timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 1) ){
-        soyo_power = timer1_watt;
-        //sprintf(msgData, "%d", soyo_power);
-        //if(mqttenabled){
-        //  client.publish(topic_power, msgData);
-        //}
-      }
-    }
-
-    if (checkboxT2 == true){    
-      int t2_hour = String(timer2_time).substring(0,2).toInt();
-      int t2_min = String(timer2_time).substring(3).toInt();  
-      
-      if((timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 1)){
-        soyo_power = timer2_watt;
-        //sprintf(msgData, "%d", soyo_power);
-        //if(mqttenabled){
-          //client.publish(topic_power, msgData);
-        //}
-      }
-    }
 }
 
 
