@@ -78,8 +78,11 @@ uint16_t Uptime_TotalDays = 0U; // Total Uptime Days
 char uptime_str[37];  
 
 //Timer
-unsigned long timerSoyoSource = 500;
+unsigned long timerSoyoSource = 555;
 unsigned long lastTimerSoyoSource = 0;  
+
+unsigned long timerUptime = 1000;
+unsigned long lastTimerUptime = 0;  
 
 unsigned long meterinterval = 5000;
 unsigned long lastMeterinterval = 0;  
@@ -166,7 +169,6 @@ bool new_connect = true;
 
 const char* PARAM_MESSAGE = "message";
 
-
 //flag for saving data
 bool shouldSaveConfig = false;
 
@@ -181,6 +183,7 @@ void saveConfigCallback () {
 void notFound(AsyncWebServerRequest *request) {
     request->send(404, "text/plain", "Not found");
 }
+
 
 void myUptime(){
   uptime.calculateUptime();                                  
@@ -222,6 +225,7 @@ void myUptime(){
     sprintf(uptime_str, "%iy %im %id %02i:%02i", Uptime_Years, Uptime_Months, Uptime_Days, Uptime_Hours, Uptime_Minutes);
 }
 
+
 //callback from mqtt
 void mqtt_callback(char* topic, byte* payload, unsigned int length) {  
   unsigned int i = 0;
@@ -236,7 +240,6 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
     soyo_power = arrived_value;
   }
 }
-
 
 
 String processor(const String& var){
@@ -294,7 +297,7 @@ int calc_checksumme(int b1, int b2, int b3, int b4, int b5, int b6 ){
 }
 
 
-void setSoyoPowerData(int power){
+void sendSoyoPowerData(int power){
   soyo_power_data[0] = 0x24;
   soyo_power_data[1] = 0x56;
   soyo_power_data[2] = 0x00;
@@ -303,6 +306,11 @@ void setSoyoPowerData(int power){
   soyo_power_data[5] = power & 0xFF;
   soyo_power_data[6] = 0x80;
   soyo_power_data[7] = calc_checksumme(soyo_power_data[1], soyo_power_data[2], soyo_power_data[3], soyo_power_data[4], soyo_power_data[5], soyo_power_data[6]);
+
+  for(int i=0; i<8; i++) {
+      RS485Serial.write(soyo_power_data[i]);  // send data to RS485 
+      //DBG_PRINTLN(soyo_power_data[i], HEX);  
+  }
 }
 
 
@@ -377,7 +385,6 @@ int getShellyTyp(){
   WiFiClient client_shelly;
   HTTPClient http;
 
-    
   if (http.begin(client_shelly, shelly_url)) { 
     int httpCode = http.GET();
     if (httpCode > 0) {
@@ -497,6 +504,7 @@ int getMeterData(int typ) {
     DBG_PRINTLN("[HTTP] Unable to connect\n");
     shelly_typ = 0;
   }
+
   return power;
 }
 
@@ -512,25 +520,17 @@ void checkTimer(){
 
       if((timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 1) ){
         soyo_power = timer1_watt;
-        //sprintf(msgData, "%d", soyo_power);
-        //if(mqttenabled){
-        //  client.publish(topic_power, msgData);
-        //}
       }
     }
 
-    if (checkboxT2 == true){    
-      int t2_hour = String(timer2_time).substring(0,2).toInt();
-      int t2_min = String(timer2_time).substring(3).toInt();  
-      
-      if((timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 1)){
-        soyo_power = timer2_watt;
-        //sprintf(msgData, "%d", soyo_power);
-        //if(mqttenabled){
-          //client.publish(topic_power, msgData);
-        //}
-      }
+  if (checkboxT2 == true){    
+    int t2_hour = String(timer2_time).substring(0,2).toInt();
+    int t2_min = String(timer2_time).substring(3).toInt();  
+     
+    if((timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t2_hour && timeInfo.tm_min == t2_min && timeInfo.tm_sec == 1)){
+      soyo_power = timer2_watt;
     }
+  }
 }
 
 
@@ -545,9 +545,13 @@ void setup() {
   DEBUG_SERIAL.begin(115200);
   delay(250);
 
+  DBG_PRINTLN("");
+  DBG_PRINT(F("CPU Frequency = "));
+  DBG_PRINT(F_CPU / 1000000);
+  DBG_PRINTLN(F(" MHz"));
+  
   WiFi.macAddress(mac);
   
-  DBG_PRINTLN("Start");
   sprintf(dbgbuffer,"ESP_%02X%02X%02X", mac[3], mac[4], mac[5]);
   DBG_PRINTLN(dbgbuffer);
   
@@ -700,12 +704,6 @@ void setup() {
     client.setServer(mqtt_server, atoi(mqtt_port));
     client.setCallback(mqtt_callback);
    
-    // Handle Web Server
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-      new_connect = true;
-      request->send_P(200, "text/html", index_html, processor);
-    });
-
     // Handle Web Server Events
     events.onConnect([](AsyncEventSourceClient *client){
       if(client->lastId()){
@@ -718,13 +716,16 @@ void setup() {
       client->send("hello!", NULL, millis(), 10000);
     });
 
+    // Handle Web Server
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+      new_connect = true;
+      request->send_P(200, "text/html", index_html, processor);
+    });
+
     // crate json and fetch data
     server.on("/json", HTTP_GET, [] (AsyncWebServerRequest *request){
       DynamicJsonDocument myJson(1024);
       String message = "";
-
-      if(new_connect){
-        new_connect = false;
 
         myJson["WIFIRSSI"] = rssi;
         myJson["CLIENTID"] = clientId;
@@ -741,19 +742,20 @@ void setup() {
         myJson["MQTTSTATE"] = mqtt_state;
         myJson["CBNULL"] = nulleinspeisung; //checkbox
         myJson["CBMQTTSTATE"] = mqttenabled; //checkbox
+        myJson["CBTIMER1"] = checkboxT1; //checkbox
+        myJson["CBTIMER2"] = checkboxT2; //checkbox
+        myJson["MQTTSERVER"] = mqtt_server;
+        myJson["MQTTPORT"] = mqtt_port;
        
-        serializeJson(myJson, message);
-      }else{
         myJson["UPTIME"] = uptime_str;
         myJson["SOYOPOWER"] = soyo_power;
+        myJson["METERNAME"] = metername;
         myJson["METERPOWER"] = meterpower;
         myJson["METERL1"] = meterl1;
         myJson["METERL2"] = meterl2;
         myJson["METERL3"] = meterl3;
-        //myJson["MAXWATT"] = maxwatt;
-
+        
         serializeJson(myJson, message);
-      }
 
       request->send(200, "application/json", message);
     });
@@ -899,6 +901,14 @@ void setup() {
 
       value =  request->getParam("nullinterval")->value();
       nullinterval = atol(value.c_str());
+
+      value =  request->getParam("mqttserver")->value();
+      memset(mqtt_server, 0, sizeof(mqtt_server)); 
+      strcat(mqtt_server, value.c_str());
+
+      value =  request->getParam("mqttport")->value();
+      memset(mqtt_port, 0, sizeof(mqtt_port)); 
+      strcat(mqtt_port, value.c_str());
       
       saveConfig(); 
 
@@ -907,20 +917,18 @@ void setup() {
       request->send_P(200, "text/html", index_html, processor);
     });
 
-
     AsyncElegantOTA.begin(&server);
     server.onNotFound(notFound);
     server.addHandler(&events);
     server.begin();
-    DBG_PRINTLN("Server start");
-
+    
     rssi = WiFi.RSSI();
    
-    myUptime();
     shelly_typ = getShellyTyp(); // get shelly typ, 3em / 3empro
 
     digitalWrite(SERIAL_COMMUNICATION_CONTROL_PIN, RS485_TX_PIN_VALUE); // RS485 Modul -> set board to transmit 
   }
+
   // end setup()  
 }
 
@@ -936,15 +944,10 @@ void loop() {
     client.loop(); 
   }
 
-  // send current power to SoyoSource every 500 ms
+  // send current power to SoyoSource every 555 ms
   if ((millis() - lastTimerSoyoSource) > timerSoyoSource) {
 
-    setSoyoPowerData(soyo_power);
-    
-    for(int i=0; i<8; i++) {
-      RS485Serial.write(soyo_power_data[i]);  // send data to RS485 
-      //DBG_PRINTLN(soyo_power_data[i], HEX);
-    }
+    sendSoyoPowerData(soyo_power);
     
     if(soyo_power != old_soyo_power) {  // nur für Debug, damit nur Änderungen ausgegeben werden
       old_soyo_power = soyo_power;
@@ -956,20 +959,13 @@ void loop() {
       sprintf(msgData, "%d", soyo_power);
       client.publish(topic_power, msgData);
     }
-            
-    if(checkboxT1 || checkboxT2){
-      checkTimer();
-    }
-
-    myUptime();
-      
+                  
     lastTimerSoyoSource = millis();
   }
 
 
-  // timer to get Shelly3EM data
+  // timer to get Shelly3EM data (1000ms)
   if ((millis() - lastMeterinterval) > meterinterval) {  
-
     if (shelly_typ > 0){
       shelly_power = getMeterData(shelly_typ);
     } else{
@@ -984,9 +980,9 @@ void loop() {
   // timer to manage Nulleinspeisung  +/- 20 Watt
   if ((millis() - lastNullinterval) > nullinterval) { 
    
-    if(nulleinspeisung){       
-             
+    if(nulleinspeisung){            
       if(shelly_power > 20){  
+        DBG_PRINTLN("Nulleinspeisung > 20");
         soyo_power += shelly_power + 5; // + 5 Leistungsverluste SoyoSource! testen und anpassen
         if(soyo_power > maxwatt){
           soyo_power = maxwatt;
@@ -994,11 +990,12 @@ void loop() {
       } 
   
       if(shelly_power < 0){
+        DBG_PRINTLN("Nulleinspeisung < 0");
         soyo_power += shelly_power; // += auch wenn meter im minus (-50) ist!
 
         if(soyo_power < 0){
           soyo_power = 0;
-        } 
+        }
       }
     }
 
@@ -1010,18 +1007,33 @@ void loop() {
   if ((millis() - lastNullFineInterval) > nullFineInterval) { 
 
     if(nulleinspeisung){
-
       if(shelly_power >= 5 && shelly_power <= 20){  
+        DBG_PRINTLN("Null fein +1");
         soyo_power += 1;
       } 
       
       if(shelly_power <= -5 ){
-        soyo_power -= 1; 
+        DBG_PRINTLN("Null fein -1");
+        soyo_power -= 1;
       }
     }
 
     lastNullFineInterval = millis();
   }
+
+
+  // timer für uptime und SoyoSource Timer
+  if ((millis() - lastTimerUptime) > timerUptime) {
+
+    myUptime();
+    
+    if(checkboxT1 || checkboxT2){
+      checkTimer();
+    }
+    
+    lastTimerUptime = millis();
+  }
+
 
 }
 

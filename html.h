@@ -213,7 +213,7 @@ const char index_html[] PROGMEM = R"rawliteral(
             </b>
           </summary>
           <hr>
-          <span class="title1">Manuelle Vorgabe</span>
+          <span class="title1">Manuelle Steuerung</span>
           <div class="flexBox2">
             <div><button type="button" onclick="set_power('/m1');" class="btn">- 1</button></div>
             <div>Set Output [W]</div>
@@ -306,6 +306,15 @@ const char index_html[] PROGMEM = R"rawliteral(
             <b>MQTT</b>
           </summary>
           <hr>
+          <div class="detailsFlexBox">
+            <div class="cellStyle1">MQTT Server:</div>
+            <div><input type='text' id='MQTTSERVER' placeholder='xxx.xxx.xxx.xxx' required pattern='^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$'/></div>
+          </div>
+          <div class="detailsFlexBox">
+            <div class="cellStyle1">MQTT Port:</div>
+            <div><input type="number" id="MQTTPORT" min="0" max="65535" /></div>
+          </div>
+          <hr>
           <div class="fontBold">Publish Topics</div>
           <div class="fontNormal"><span><span id="MQTTROOT1"></span>/power</span></div>
           <br>
@@ -385,6 +394,8 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("CBMQTTSTATE").checked      = data_start.CBMQTTSTATE
       document.getElementById("CBTIMER1").checked         = data_start.CBTIMER1
       document.getElementById("CBTIMER2").checked         = data_start.CBTIMER2
+      document.getElementById("MQTTSERVER").value         = data_start.MQTTSERVER
+      document.getElementById("MQTTPORT").value           = data_start.MQTTPORT
     });
 </script>
 
@@ -400,6 +411,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       console.log(data);
       document.getElementById("UPTIME").innerHTML         = data.UPTIME
       document.getElementById("SOYOPOWER").innerHTML      = data.SOYOPOWER
+      document.getElementById("METERNAME").innerHTML      = data.METERNAME
       document.getElementById("METERPOWER").innerHTML     = data.METERPOWER
       document.getElementById("METERL1").innerHTML        = data.METERL1
       document.getElementById("METERL2").innerHTML        = data.METERL2
@@ -466,10 +478,13 @@ const char index_html[] PROGMEM = R"rawliteral(
     var meterinterval = document.getElementById("METERINTERVAL").value;
     var maxwatt = document.getElementById("MAXWATTINPUT").value;
     var nullinterval = document.getElementById("NULLINTERVAL").value;
+
+    var mqttserver = document.getElementById("MQTTSERVER").value;
+    var mqttport = document.getElementById("MQTTPORT").value;
     
     let text = "Save Settings!\nPress OK or Cancel.";
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/savesettings?t1=" + timer1_time + "&w1=" + timer1_watt + "&t2=" + timer2_time + "&w2=" + timer2_watt + "&meteripaddr=" + meteripaddr + "&meterinterval=" + meterinterval +"&maxwatt=" + maxwatt + "&nullinterval=" + nullinterval , true);
+    xhr.open("GET", "/savesettings?t1=" + timer1_time + "&w1=" + timer1_watt + "&t2=" + timer2_time + "&w2=" + timer2_watt + "&meteripaddr=" + meteripaddr + "&meterinterval=" + meterinterval + "&maxwatt=" + maxwatt + "&nullinterval=" + nullinterval + "&mqttserver=" + mqttserver + "&mqttport=" + mqttport, true);
     xhr.send();    
   };
 
