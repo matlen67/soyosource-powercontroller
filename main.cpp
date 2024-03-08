@@ -125,16 +125,16 @@ char clientId[12];
 char topic_power[40];
 char soyo_text[40];
 
+float mqtt_bat_soc = 0.0;
+float mqtt_bat_voltage = 0.0;
+
 long rssi;
 
 time_t now;                       
 tm timeInfo;
 
-const int shelly_3em_pro = 1;
-const int shelly_3em = 2;
-const int shelly_em = 3;
-const int shelly_1pm = 4;
 
+// timer
 char currentTime[20];
 char timer1_time[6] = "06:00";
 char timer2_time[6] = "20:00";
@@ -144,17 +144,21 @@ int timer1_watt = 0;
 int timer2_watt = 0;
 int maxwatt = 0;
 
-
 //state checkboxes
 bool checkboxT1 = false;
 bool checkboxT2 = false;
 bool mqttenabled = false;
 bool nulleinspeisung = false;
+bool batschutz = false;
 
 char metername[24] = "Meter";
 char mqtt_state[20] = "disabled";
 
 // variablen Shelly 3em
+const int shelly_3em_pro = 1;
+const int shelly_3em = 2;
+const int shelly_em = 3;
+const int shelly_1pm = 4;
 String shelly_ip = "";
 int shelly_typ = 0 ; 
 
@@ -164,6 +168,12 @@ int meterpower = 0;
 int meterl1 = 0;
 int meterl2 = 0;
 int meterl3 = 0;
+
+//batterieüberwachung
+int batsocstop = 20;
+int batsocstart = 80;
+bool output_enabled = true;
+
 
 bool new_connect = true;
 
@@ -228,17 +238,40 @@ void myUptime(){
 
 //callback from mqtt
 void mqtt_callback(char* topic, byte* payload, unsigned int length) {  
+  //
+  //DBG_PRINT("Message arrived [");
+  //DBG_PRINT(topic);
+  //DBG_PRINT("] ");
+  //for (int i=0;i<length;i++) {
+  //  DBG_PRINT((char)payload[i]);
+  //}
+  //DBG_PRINTLN("");
+  //
+
   unsigned int i = 0;
+
   for (i=0;i<length;i++) {
     buffer[i] = char(payload[i]);
   }
+  buffer[i] = '\0';    
 
-  buffer[i] = '\0';
-    
-  int arrived_value = atoi(buffer);
-  if (arrived_value >= 0 && arrived_value <= 3000) {
-    soyo_power = arrived_value;
+  if (strcmp(topic, topic_power) == 0){
+    int arrived_value_i = atoi(buffer);
+    if (arrived_value_i >= 0 && arrived_value_i <= 3000) {
+      soyo_power = arrived_value_i;
+    }
   }
+
+  if(strcmp(topic, "VenusOS/SmartShunt/soc") == 0){
+    float arrived_value_f = atof(buffer);
+    mqtt_bat_soc = arrived_value_f;
+  }
+
+  if(strcmp(topic, "VenusOS/SmartShunt/voltage") == 0){
+    float arrived_value_f = atof(buffer);
+    mqtt_bat_voltage = arrived_value_f;
+  }
+
 }
 
 
@@ -266,12 +299,24 @@ void reconnect() {
 
       client.publish(topic_power, "0"); 
       client.subscribe(topic_power);
+      client.subscribe("VenusOS/SmartShunt/soc");
+      client.subscribe("VenusOS/SmartShunt/voltage");
 
       strcpy(mqtt_state, "connected");
 
       DBG_PRINT("subscrible: ");
       DBG_PRINT(topic_power);
       DBG_PRINTLN("");
+
+      DBG_PRINT("subscrible: ");
+      DBG_PRINT("VenusOS/SmartShunt/soc");
+      DBG_PRINTLN("");
+
+      DBG_PRINT("subscrible: ");
+      DBG_PRINT("VenusOS/SmartShunt/voltage");
+      DBG_PRINTLN("");
+
+
     } else {
       DBG_PRINTLN("reconnect failed! ");
       strcpy(mqtt_state, "connection error");
@@ -331,7 +376,13 @@ void saveConfig(){
   }else{
     json["nulleinspeisung"] = "0";
   }
-  
+
+  if(batschutz){
+    json["batschutz"] = "1";
+  }else{
+    json["batschutz"] = "0";
+  }
+
   json["ip"] = WiFi.localIP().toString();
   json["gateway"] = WiFi.gatewayIP().toString();
   json["subnet"] = WiFi.subnetMask().toString();
@@ -343,6 +394,8 @@ void saveConfig(){
   json["meteripaddr"] = meteripaddr;
   json["meterinterval"] = meterinterval;
   json["nullinterval"] = nullinterval;
+  json["batsocstop"] = batsocstop;
+  json["batsocstart"] = batsocstart;
   
   File configFile = LittleFS.open("/config.json", "w");
   if (!configFile) {
@@ -616,6 +669,18 @@ void setup() {
             }
           }
 
+          if(json.containsKey("batschutz")){
+            char json_batschutzstate[2];
+            strcpy(json_batschutzstate, json["batschutz"]);
+
+            if(strcmp(json_batschutzstate, "1") == 0){
+              batschutz = true;
+            }else{
+              batschutz = false;
+            }
+          }
+
+
           if(json.containsKey("timer1_time")){
             strcpy(timer1_time, json["timer1_time"]);            
           }
@@ -640,11 +705,21 @@ void setup() {
             strcpy(meteripaddr, json["meteripaddr"]);  
             shelly_ip = String(meteripaddr);
           }
+
           if(json.containsKey("meterinterval")){
             meterinterval = json["meterinterval"]; 
           }
+
           if(json.containsKey("nullinterval")){
             nullinterval = json["nullinterval"]; 
+          }
+
+          if(json.containsKey("batsocstop")){
+            batsocstop = json["batsocstop"]; 
+          }
+
+          if(json.containsKey("batsocstart")){
+            batsocstart = json["batsocstart"]; 
           }
 
         } else {
@@ -744,6 +819,7 @@ void setup() {
         myJson["CBMQTTSTATE"] = mqttenabled; //checkbox
         myJson["CBTIMER1"] = checkboxT1; //checkbox
         myJson["CBTIMER2"] = checkboxT2; //checkbox
+        myJson["CBBATSCHUTZ"] = batschutz; //checkbox
         myJson["MQTTSERVER"] = mqtt_server;
         myJson["MQTTPORT"] = mqtt_port;
        
@@ -754,7 +830,13 @@ void setup() {
         myJson["METERL1"] = meterl1;
         myJson["METERL2"] = meterl2;
         myJson["METERL3"] = meterl3;
-        
+        myJson["MQTT_SUB_1"] = String(soyo_power) + " W";
+        myJson["MQTT_BAT_SOC"] = String(mqtt_bat_soc, 1) + " %";
+        myJson["MQTT_BAT_V"] = String(mqtt_bat_voltage, 1) + " V";
+        myJson["BATSOCSTOP"] = batsocstop;
+        myJson["BATSOCSTART"] = batsocstart;
+
+
         serializeJson(myJson, message);
 
       request->send(200, "application/json", message);
@@ -867,6 +949,13 @@ void setup() {
             soyo_power = 0;
           }
         }
+        else if(checkbox_id.equals("CBBATSCHUTZ")){
+          if(checkbox_value.equals("1")){
+            batschutz = true;
+          } else {
+            batschutz = false;
+          }
+        }
       }    
       request->send_P(200, "text/html", index_html, processor);
     });
@@ -909,6 +998,12 @@ void setup() {
       value =  request->getParam("mqttport")->value();
       memset(mqtt_port, 0, sizeof(mqtt_port)); 
       strcat(mqtt_port, value.c_str());
+
+      value =  request->getParam("batsocstop")->value();
+      batsocstop = atoi(value.c_str());
+
+      value =  request->getParam("batsocstart")->value();
+      batsocstart = atoi(value.c_str());  
       
       saveConfig(); 
 
@@ -944,8 +1039,13 @@ void loop() {
     client.loop(); 
   }
 
+
   // send current power to SoyoSource every 555 ms
   if ((millis() - lastTimerSoyoSource) > timerSoyoSource) {
+
+    if(batschutz == true && output_enabled == false){ // wenn batterie soc < limit dann soyo_power =0 
+      soyo_power = 0;
+    }
 
     sendSoyoPowerData(soyo_power);
     
@@ -1022,13 +1122,29 @@ void loop() {
   }
 
 
-  // timer für uptime und SoyoSource Timer
+  // timer für uptime, SoyoSource Timer und BatSOCLimit
   if ((millis() - lastTimerUptime) > timerUptime) {
 
     myUptime();
     
     if(checkboxT1 || checkboxT2){
       checkTimer();
+    }
+
+    // check ob Batterie SOC < oder > eingestelltem Limit
+    float mqttbatsoc_float = mqtt_bat_soc + 0.5;
+    int mqttbatsoc_int = (int)mqttbatsoc_float;
+    //DBG_PRINT("outputenabled = ");
+    //DBG_PRINTLN(outputenabled);
+    
+    if(mqttbatsoc_int > 1){ // falls mqtt noch nicht verbunden oder nicht aktiv
+      if(mqttbatsoc_int <= batsocstop){
+        output_enabled = false;
+        //DBG_PRINTLN("outputenabled = false");
+      }else if(mqttbatsoc_int >= batsocstart){
+        output_enabled = true;
+        //DBG_PRINTLN("outputenabled = true");
+      }
     }
     
     lastTimerUptime = millis();

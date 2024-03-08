@@ -140,6 +140,27 @@ const char index_html[] PROGMEM = R"rawliteral(
       margin-bottom: 5px;
     }
 
+    .flexContainer{
+      display: flex;
+      flex-direction: row;
+      justify-content:flex-start;
+      align-items: center;
+      margin-left: 10px;
+      margin-top: 5px;
+    }
+
+    .flexColLeft{
+      flex-basis: 65%;
+      text-align: start;
+      padding-left: 5px;
+    }
+  
+    .flexColRight{
+      flex-basis: 35%;
+      text-align: end;
+      padding-right: 25px;
+    }
+
     .fontBold{
       font-weight: bold;
       text-align: left;
@@ -205,7 +226,7 @@ const char index_html[] PROGMEM = R"rawliteral(
               <table>
                 <tbody>
                   <tr>
-                    <td width="180px">SoyoSource</td>
+                    <td width="180px">SoyoSource Output</td>
                     <td class='alnright'><span><span id="SOYOPOWER"></span> W</span></td>
                   </tr>
                 </tbody>
@@ -246,27 +267,26 @@ const char index_html[] PROGMEM = R"rawliteral(
             </b>
           </summary>
           <hr>
-          <div class="detailsFlexBox">
-            <div class="cellStyle2">L1 [W]:</div>
-            <div id="METERL1"></div>
+          <div class="flexContainer">
+            <div class="flexColLeft">L1 [W]:</div>
+            <div class="flexColRight" id="METERL1">999</div>
           </div>
-          <div class="detailsFlexBox">
-            <div class="cellStyle2">L2 [W]:</div>
-            <div id="METERL2"></div>
+          <div class="flexContainer">
+            <div class="flexColLeft">L2 [W]:</div>
+            <div class="flexColRight" id="METERL2">999</div>
           </div>
-          <div class="detailsFlexBox">
-            <div class="cellStyle2">L3 [W]:</div>
-            <div id="METERL3"></div>
-          </div>
-          <hr>
-          <div class="detailsFlexBox">
-            <div class="cellStyle1">Interval [ms]:</div>
-            <div><input type="number" min="500" max="5000" id="METERINTERVAL" /></div>
+          <div class="flexContainer">
+            <div class="flexColLeft">L3 [W]:</div>
+            <div class="flexColRight" id="METERL3">999</div>
           </div>
           <hr>
-          <div class="detailsFlexBox">
-            <div class="cellStyle1">Meter Ip:</div>
-            <div><input type='text' id='METERIP' placeholder='xxx.xxx.xxx.xxx' required pattern='^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$'/></div>
+          <div class="flexContainer">
+            <div class="flexColLeft">Interval [ms]:</div>
+            <div class="flexColRight"><input type="number" min="500" max="5000" id="METERINTERVAL" /></div>
+          </div>
+          <div class="flexContainer">
+            <div class="flexColLeft">Meter Ip:</div>
+            <div class="flexColRight"><input type='text' id='METERIP' placeholder='xxx.xxx.xxx.xxx' required pattern='^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$'/></div>
           </div>
         </details>
       </div>
@@ -281,13 +301,13 @@ const char index_html[] PROGMEM = R"rawliteral(
             <b>Nulleinspeisung</b>
           </summary>
           <hr>
-          <div class="detailsFlexBox">
-            <div class="cellStyle1">Max Output [W]:</div>
-            <div><input type="number" min="0" max="2000" id="MAXWATTINPUT"/></div>
+          <div class="flexContainer">
+            <div class="flexColLeft">Max Output [W]:</div>
+            <div class="flexColRight"><input type="number" min="0" max="2000" id="MAXWATTINPUT"/></div>
           </div>
-          <div class="detailsFlexBox">
-            <div class="cellStyle1">Interval [ms]:</div>
-            <div><input type="number" min="500" max="30000" id="NULLINTERVAL" /></div>
+          <div class="flexContainer">
+            <div class="flexColLeft">Interval [ms]:</div>
+            <div class="flexColRight"><input type="number" min="500" max="30000" id="NULLINTERVAL" /></div>
           </div>
           <div class="detailsFlexBox">
             <div>Aktiv:</div>
@@ -306,24 +326,62 @@ const char index_html[] PROGMEM = R"rawliteral(
             <b>MQTT</b>
           </summary>
           <hr>
-          <div class="detailsFlexBox">
-            <div class="cellStyle1">MQTT Server:</div>
-            <div><input type='text' id='MQTTSERVER' placeholder='xxx.xxx.xxx.xxx' required pattern='^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$'/></div>
+          <div class="flexContainer">
+            <div class="flexColLeft">MQTT Server:</div>
+            <div class="flexColRight"><input type='text' id='MQTTSERVER' placeholder='xxx.xxx.xxx.xxx' required pattern='^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$'/></div>
           </div>
-          <div class="detailsFlexBox">
-            <div class="cellStyle1">MQTT Port:</div>
-            <div><input type="number" id="MQTTPORT" min="0" max="65535" /></div>
+          <div class="flexContainer">
+            <div class="flexColLeft">MQTT Port:</div>
+            <div class="flexColRight"><input type="number" id="MQTTPORT" min="0" max="65535" /></div>
+          </div>
+          <div class="flexContainer">
+            <div style="padding-right: 50px;">Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBMQTTSTATE" /></div>
+            <div>Status: </label><span id="MQTTSTATE"></span></div>
           </div>
           <hr>
           <div class="fontBold">Publish Topics</div>
-          <div class="fontNormal"><span><span id="MQTTROOT1"></span>/power</span></div>
+          <div class="flexContainer">
+            <div class="flexColLeft"><span><span id="MQTTROOT1"></span>/power</span></div>
+          </div>
           <br>
           <div class="fontBold">Subscribe Topics</div>
-          <div class="fontNormal"><span><span id="MQTTROOT2"></span>/power</span></div>
+          <div class="flexContainer">
+            <div class="flexColLeft"><span><span id="MQTTROOT2"></span>/power</span></div>
+            <div class="flexColRight" id="MQTT_SUB_1">999</div>
+          </div>
           <br>
+          <div class="flexContainer">
+            <div class="flexColLeft"><span>VenusOS/SmartShunt/voltage</span></div>
+            <div class="flexColRight" id="MQTT_BAT_V">999</div>
+          </div>
+          <div class="flexContainer">
+            <div class="flexColLeft"><span>VenusOS/SmartShunt/soc</span></div>
+            <div class="flexColRight" id="MQTT_BAT_SOC">999</div>
+          </div>         
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="card-grid">
+      <div class="card">
+        <details>
+          <summary>
+            <b>Batterieschutz</b>
+          </summary>
+          <hr>
+          <div class="flexContainer">
+            <div class="flexColLeft">Stop Output bei SOC kleiner</div>
+            <div class="flexColRight"><input type="number" id="BATSOCSTOP" min="10" max="100" placeholder="20" /> %</div>
+          </div>
+          <div class="flexContainer">
+            <div class="flexColLeft">Restart Output bei SOC gr&ouml&szliger</div>
+            <div class="flexColRight"><input type="number" id="BATSOCSTART" min="15" max="100" placeholder="80" /> %</div>
+          </div>
           <div class="detailsFlexBox">
-            <div style="padding-right: 50px;">Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBMQTTSTATE" /></div>
-            <div>Status: </label><span id="MQTTSTATE"></span></div>
+            <div>Aktiv:</div>
+            <div><input type="checkbox" onchange="toggleCheckbox(this)" id="CBBATSCHUTZ"/></div>
           </div>
         </details>
       </div>
@@ -396,6 +454,11 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("CBTIMER2").checked         = data_start.CBTIMER2
       document.getElementById("MQTTSERVER").value         = data_start.MQTTSERVER
       document.getElementById("MQTTPORT").value           = data_start.MQTTPORT
+      document.getElementById("BATSOCSTOP").value         = data_start.BATSOCSTOP
+      document.getElementById("BATSOCSTART").value        = data_start.BATSOCSTART
+      document.getElementById("CBBATSCHUTZ").checked      = data_start.CBBATSCHUTZ
+
+
     });
 </script>
 
@@ -416,6 +479,10 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("METERL1").innerHTML        = data.METERL1
       document.getElementById("METERL2").innerHTML        = data.METERL2
       document.getElementById("METERL3").innerHTML        = data.METERL3
+      document.getElementById("MQTT_SUB_1").innerHTML     = data.MQTT_SUB_1
+      document.getElementById("MQTT_BAT_SOC").innerHTML   = data.MQTT_BAT_SOC
+      document.getElementById("MQTT_BAT_V").innerHTML     = data.MQTT_BAT_V
+      
     });
   } 
 </script>
@@ -481,10 +548,16 @@ const char index_html[] PROGMEM = R"rawliteral(
 
     var mqttserver = document.getElementById("MQTTSERVER").value;
     var mqttport = document.getElementById("MQTTPORT").value;
-    
+
+    var batsocstop = document.getElementById("BATSOCSTOP").value;
+    var batsocstart = document.getElementById("BATSOCSTART").value;
+
     let text = "Save Settings!\nPress OK or Cancel.";
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "/savesettings?t1=" + timer1_time + "&w1=" + timer1_watt + "&t2=" + timer2_time + "&w2=" + timer2_watt + "&meteripaddr=" + meteripaddr + "&meterinterval=" + meterinterval + "&maxwatt=" + maxwatt + "&nullinterval=" + nullinterval + "&mqttserver=" + mqttserver + "&mqttport=" + mqttport, true);
+    xhr.open("GET", "/savesettings?t1=" + timer1_time + "&w1=" + timer1_watt + "&t2=" + timer2_time + "&w2=" + timer2_watt +
+     "&meteripaddr=" + meteripaddr + "&meterinterval=" + meterinterval + "&maxwatt=" + maxwatt +
+     "&nullinterval=" + nullinterval + "&mqttserver=" + mqttserver + "&mqttport=" + mqttport +
+     "&batsocstop=" + batsocstop + "&batsocstart=" + batsocstart, true);
     xhr.send();    
   };
 
@@ -510,7 +583,7 @@ const char index_html[] PROGMEM = R"rawliteral(
   };
   
   function fuehrendeNull(zahl) {
-    zahl = (zahl < 10 ? '0' : '' )+ zahl;  
+    zahl = (zahl < 10 ? '0' : '' ) + zahl;  
     return zahl;
   };
 
