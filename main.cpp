@@ -383,6 +383,18 @@ void saveConfig(){
     json["batschutz"] = "0";
   }
 
+  if(checkboxT1){
+    json["timer1_aktiv"] = "1";
+  }else{
+    json["timer1_aktiv"] = "0";
+  }
+
+  if(checkboxT2){
+    json["timer2_aktiv"] = "1";
+  }else{
+    json["timer2_aktiv"] = "0";
+  }
+
   json["ip"] = WiFi.localIP().toString();
   json["gateway"] = WiFi.gatewayIP().toString();
   json["subnet"] = WiFi.subnetMask().toString();
@@ -677,6 +689,28 @@ void setup() {
               batschutz = true;
             }else{
               batschutz = false;
+            }
+          }
+
+          if(json.containsKey("timer1_aktiv")){
+            char json_timer1_aktiv[2];
+            strcpy(json_timer1_aktiv, json["timer1_aktiv"]);
+
+            if(strcmp(json_timer1_aktiv, "1") == 0){
+              checkboxT1 = true;
+            }else{
+              checkboxT1 = false;
+            }
+          }
+
+          if(json.containsKey("timer2_aktiv")){
+            char json_timer2_aktiv[2];
+            strcpy(json_timer2_aktiv, json["timer2_aktiv"]);
+
+            if(strcmp(json_timer2_aktiv, "1") == 0){
+              checkboxT2 = true;
+            }else{
+              checkboxT2 = false;
             }
           }
 
