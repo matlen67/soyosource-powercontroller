@@ -197,7 +197,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       <div class="card">
         <details>
             <summary>
-              <b>ESP Infos</b>
+              <b>ESP</b>
             </summary>
             <hr>
             <div class="detailsFlexBox">
@@ -227,7 +227,7 @@ const char index_html[] PROGMEM = R"rawliteral(
                 <tbody>
                   <tr>
                     <td width="180px">SoyoSource Output</td>
-                    <td class='alnright'><span><span id="SOYOPOWER"></span> W</span></td>
+                    <td class='alnright'><span id="SOYOPOWER"></span> W</td>
                   </tr>
                 </tbody>
               </table>
@@ -260,7 +260,7 @@ const char index_html[] PROGMEM = R"rawliteral(
                 <tbody>
                   <tr>
                     <td width="180px"><span id="METERNAME">no device</span></td>
-                    <td class='alnright'><span id="METERPOWER"></span> W</span></td>
+                    <td class="alnright"><span id="METERPOWER"></span> W</td>
                   </tr>
                 </tbody>
               </table>
@@ -298,7 +298,16 @@ const char index_html[] PROGMEM = R"rawliteral(
       <div class="card">
         <details>
           <summary>
-            <b>Nulleinspeisung</b>
+            <b>
+              <table>
+                <tbody>
+                  <tr>
+                    <td width="180px"><span>Nulleinspeisung</span></td>
+                    <td class="alnright"><span id="NULLSTATE"></span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </b>
           </summary>
           <hr>
           <div class="flexContainer">
@@ -323,7 +332,16 @@ const char index_html[] PROGMEM = R"rawliteral(
       <div class="card">
         <details>
           <summary>
-            <b>MQTT</b>
+            <b>
+              <table>
+                <tbody>
+                  <tr>
+                    <td width="180px"><span>MQTT</span></td>
+                    <td class="alnright"><span id="MQTTSTATE"></span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </b>
           </summary>
           <hr>
           <div class="flexContainer">
@@ -336,7 +354,7 @@ const char index_html[] PROGMEM = R"rawliteral(
           </div>
           <div class="flexContainer">
             <div style="padding-right: 50px;">Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBMQTTSTATE" /></div>
-            <div>Status: </label><span id="MQTTSTATE"></span></div>
+            <div>Status: </label><span id="MQTTSTATECL"></span></div>
           </div>
           <hr>
           <div class="fontBold">Publish Topics</div>
@@ -368,7 +386,16 @@ const char index_html[] PROGMEM = R"rawliteral(
       <div class="card">
         <details>
           <summary>
-            <b>Batterieschutz</b>
+            <b>
+              <table>
+                <tbody>
+                  <tr>
+                    <td width="180px"><span>Batterieschutz</span></td>
+                    <td class="alnright"><span id="BATTSTATE"></span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </b>
           </summary>
           <hr>
           <div class="flexContainer">
@@ -393,7 +420,16 @@ const char index_html[] PROGMEM = R"rawliteral(
       <div class="card">
         <details>
           <summary>
-            <b>Timer</b>
+            <b>
+              <table>
+                <tbody>
+                  <tr>
+                    <td width="180px"><span>Timer</span></td>
+                    <td class="alnright"><span id="TIMERSTATE"></span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </b>
           </summary>
           <hr>
           <div class="detailsFlexBox">
@@ -439,7 +475,11 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("METERNAME").innerHTML      = data_start.METERNAME
       document.getElementById("MQTTROOT1").innerHTML      = data_start.MQTTROOT
       document.getElementById("MQTTROOT2").innerHTML      = data_start.MQTTROOT
+      document.getElementById("MQTTSTATECL").innerHTML    = data_start.MQTTSTATECL
       document.getElementById("MQTTSTATE").innerHTML      = data_start.MQTTSTATE
+      document.getElementById("NULLSTATE").innerHTML      = data_start.NULLSTATE
+      document.getElementById("BATTSTATE").innerHTML      = data_start.BATTSTATE
+      document.getElementById("TIMERSTATE").innerHTML     = data_start.TIMERSTATE
       document.getElementById("METERIP").value            = data_start.METERIP
       document.getElementById("METERINTERVAL").value      = data_start.METERINTERVAL
       document.getElementById("MAXWATTINPUT").value       = data_start.MAXWATTINPUT
@@ -457,6 +497,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("BATSOCSTOP").value         = data_start.BATSOCSTOP
       document.getElementById("BATSOCSTART").value        = data_start.BATSOCSTART
       document.getElementById("CBBATSCHUTZ").checked      = data_start.CBBATSCHUTZ
+      
 
 
     });

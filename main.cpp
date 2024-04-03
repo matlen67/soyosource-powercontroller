@@ -3,8 +3,8 @@
   Version: 1.0 /  17.12.2023
 
   # last Update
-  16.03.2023 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
-  
+  16.03.2024 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
+  03.04.2024 -> Statusübersicht bei geschlossenen details/summary boxen
 
   Wiring
   NodeMCU D1 - RS485 RO
@@ -62,7 +62,8 @@ char dbgbuffer[128];
 
 // time server
 #define MY_NTP_SERVER "de.pool.ntp.org"           
-#define MY_TZ "CET-1CEST,M3.5.0/02,M10.5.0/03"   
+#define MY_TZ "CET-1CEST,M3.5.0/2,M10.5.0/3"   
+               
 
 SoftwareSerial RS485Serial(RXPin, TXPin); // RX, TX
 WiFiClient espClient;
@@ -303,7 +304,7 @@ void reconnect() {
       client.subscribe("VenusOS/SmartShunt/soc");
       client.subscribe("VenusOS/SmartShunt/voltage");
 
-      strcpy(mqtt_state, "connected");
+      strcpy(mqtt_state, "connect");
 
       DBG_PRINT("subscrible: ");
       DBG_PRINT(topic_power);
@@ -320,7 +321,7 @@ void reconnect() {
 
     } else {
       DBG_PRINTLN("reconnect failed! ");
-      strcpy(mqtt_state, "connection error");
+      strcpy(mqtt_state, "connect error");
       
       //give a litle time to connect
       while (timeout){
@@ -331,9 +332,9 @@ void reconnect() {
     }
   }
 
-  if(!mqttenabled){
-    strcpy(mqtt_state, "disabled");
-  }
+  //if(!mqttenabled){
+  //  strcpy(mqtt_state, "disconnect");
+  //}
 }
 
 
@@ -361,6 +362,7 @@ void sendSoyoPowerData(int power){
 
 
 void saveConfig(){
+  DBG_PRINTLN(F("save data to config.json"));
   DynamicJsonDocument json(1024);
  
   json["mqtt_server"] = mqtt_server;
@@ -413,12 +415,13 @@ void saveConfig(){
   File configFile = LittleFS.open("/config.json", "w");
   if (!configFile) {
     DBG_PRINTLN("failed to open config file for writing");
+    return;
   }
 
-  serializeJson(json, Serial);
   serializeJson(json, configFile);
-  
   configFile.close();
+
+  serializeJson(json, Serial);
   DBG_PRINTLN();
 }
 
@@ -656,7 +659,7 @@ void setup() {
         DynamicJsonDocument json(1024);
         auto deserializeError = deserializeJson(json, buf.get());
         serializeJson(json, Serial);
-        if ( ! deserializeError ) {
+        if (!deserializeError) {
           DBG_PRINTLN("\nparsed json");
           strcpy(mqtt_server, json["mqtt_server"]);
           strcpy(mqtt_port, json["mqtt_port"]);
@@ -807,13 +810,16 @@ void setup() {
       saveConfig();
     }
 
-    DBG_PRINTLN("set mqtt server!");
-    DBG_PRINTLN(String("mqtt_server: ") + mqtt_server);
-    DBG_PRINTLN(String("mqtt_port: ") + mqtt_port);
+    DBG_PRINTLN(String("mqttenabled: ") + mqttenabled);
+    if(mqttenabled){
+      DBG_PRINTLN("set mqtt server!");
+      DBG_PRINTLN(String("mqtt_server: ") + mqtt_server);
+      DBG_PRINTLN(String("mqtt_port: ") + mqtt_port);
 
-    client.setServer(mqtt_server, atoi(mqtt_port));
-    client.setCallback(mqtt_callback);
-   
+      client.setServer(mqtt_server, atoi(mqtt_port));
+      client.setCallback(mqtt_callback);
+    }
+
     // Handle Web Server Events
     events.onConnect([](AsyncEventSourceClient *client){
       if(client->lastId()){
@@ -849,15 +855,39 @@ void setup() {
         myJson["TIMER2TIME"] = timer2_time;
         myJson["TIMER2WATT"] = timer2_watt;
         myJson["MQTTROOT"] = mqtt_root;
-        myJson["MQTTSTATE"] = mqtt_state;
+        myJson["MQTTSTATECL"] = mqtt_state; // state client: connect/disconnect
+
         myJson["CBNULL"] = nulleinspeisung; //checkbox
+        if(nulleinspeisung){
+          myJson["NULLSTATE"] = "EIN";
+        } else{
+          myJson["NULLSTATE"] = "AUS";
+        }
+
         myJson["CBMQTTSTATE"] = mqttenabled; //checkbox
+        if(mqttenabled){
+          myJson["MQTTSTATE"] = "EIN";
+        } else{
+          myJson["MQTTSTATE"] = "AUS";
+        }
+
         myJson["CBTIMER1"] = checkboxT1; //checkbox
         myJson["CBTIMER2"] = checkboxT2; //checkbox
+         if(checkboxT1 || checkboxT2){
+          myJson["TIMERSTATE"] = "EIN";
+        } else{
+          myJson["TIMERSTATE"] = "AUS";
+        }
+
         myJson["CBBATSCHUTZ"] = batschutz; //checkbox
+        if(batschutz){
+          myJson["BATTSTATE"] = "EIN";
+        } else{
+          myJson["BATTSTATE"] = "AUS";
+        }
+
         myJson["MQTTSERVER"] = mqtt_server;
         myJson["MQTTPORT"] = mqtt_port;
-       
         myJson["UPTIME"] = uptime_str;
         myJson["SOYOPOWER"] = soyo_power;
         myJson["METERNAME"] = metername;
