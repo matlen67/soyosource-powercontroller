@@ -201,7 +201,7 @@ const char index_html[] PROGMEM = R"rawliteral(
                 <table>
                   <tbody>
                     <tr>
-                      <td width="180px">ESP</td>
+                      <td width="150px">ESP</td>
                       <td class='alnright'><span> WiFi-Qualit&aumlt: <span id="WIFIQUALITI"></span> %</span></td>
                     </tr>
                   </tbody>
