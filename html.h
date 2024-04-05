@@ -197,7 +197,16 @@ const char index_html[] PROGMEM = R"rawliteral(
       <div class="card">
         <details>
             <summary>
-              <b>ESP</b>
+              <b>
+                <table>
+                  <tbody>
+                    <tr>
+                      <td width="180px">ESP</td>
+                      <td class='alnright'><span> WiFi-Qualit&aumlt: <span id="WIFIQUALITI"></span> %</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </b>
             </summary>
             <hr>
             <div class="detailsFlexBox">
@@ -206,7 +215,7 @@ const char index_html[] PROGMEM = R"rawliteral(
             </div>
             <div class="detailsFlexBox">
               <div class="cellStyle1">Wifi RSSI:</div>
-              <div> <span><span id="WIFIRSSI"></span> dB</span></div>
+              <div> <span><span id="WIFIRSSI"></span> dBm</span></div>
             </div>
             <div class="detailsFlexBox">
               <div class="cellStyle1">Uptime:</div>
@@ -480,6 +489,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("NULLSTATE").innerHTML      = data_start.NULLSTATE
       document.getElementById("BATTSTATE").innerHTML      = data_start.BATTSTATE
       document.getElementById("TIMERSTATE").innerHTML     = data_start.TIMERSTATE
+      document.getElementById("WIFIQUALITI").innerHTML    = data_start.WIFIQUALITI
       document.getElementById("METERIP").value            = data_start.METERIP
       document.getElementById("METERINTERVAL").value      = data_start.METERINTERVAL
       document.getElementById("MAXWATTINPUT").value       = data_start.MAXWATTINPUT

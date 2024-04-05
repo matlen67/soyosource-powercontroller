@@ -63,7 +63,8 @@ char dbgbuffer[128];
 // time server
 #define MY_NTP_SERVER "de.pool.ntp.org"           
 #define MY_TZ "CET-1CEST,M3.5.0/2,M10.5.0/3"   
-               
+
+
 
 SoftwareSerial RS485Serial(RXPin, TXPin); // RX, TX
 WiFiClient espClient;
@@ -78,6 +79,10 @@ Uptime uptime;
 uint8_t Uptime_Years = 0U, Uptime_Months = 0U, Uptime_Days = 0U, Uptime_Hours = 0U, Uptime_Minutes = 0U, Uptime_Seconds = 0U;
 uint16_t Uptime_TotalDays = 0U; // Total Uptime Days
 char uptime_str[37];  
+
+// Wifi to percent
+const int RSSI_MAX =-50;  // max strength signal in dBm
+const int RSSI_MIN =-100; // min strength signal in dBm
 
 //Timer
 unsigned long timerSoyoSource = 555;
@@ -195,6 +200,20 @@ void saveConfigCallback () {
 void notFound(AsyncWebServerRequest *request) {
     request->send(404, "text/plain", "Not found");
 }
+
+
+int dBmtoPercent(int dBm){
+  int percent;
+  if(dBm <= RSSI_MIN){
+    percent = 0;
+  } else if(dBm >= RSSI_MAX) {  
+    percent = 100;
+  } else {
+    percent = 2 * (dBm + 100);
+  }
+
+  return percent;
+} 
 
 
 void myUptime(){
@@ -796,7 +815,7 @@ void setup() {
     DBG_PRINTLN(String(WiFi.SSID()));
     DBG_PRINT("RSSI = ");
     DBG_PRINT(String(WiFi.RSSI()));
-    DBG_PRINTLN(" dB");
+    DBG_PRINTLN(" dBm");
     DBG_PRINT("IP address  ");
     DBG_PRINTLN(WiFi.localIP());
     DBG_PRINTLN();
@@ -900,6 +919,8 @@ void setup() {
         myJson["MQTT_BAT_V"] = String(mqtt_bat_voltage, 1) + " V";
         myJson["BATSOCSTOP"] = batsocstop;
         myJson["BATSOCSTART"] = batsocstart;
+        //long curRSSI = WiFi.RSSI;
+        myJson["WIFIQUALITI"] = dBmtoPercent(WiFi.RSSI());
 
 
         serializeJson(myJson, message);
