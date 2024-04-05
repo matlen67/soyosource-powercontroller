@@ -862,68 +862,69 @@ void setup() {
       DynamicJsonDocument myJson(1024);
       String message = "";
 
-        myJson["WIFIRSSI"] = rssi;
-        myJson["CLIENTID"] = clientId;
-        myJson["METERNAME"] = metername;
-        myJson["MAXWATTINPUT"] = maxwatt;
-        myJson["NULLINTERVAL"] = nullinterval;
-        myJson["METERIP"] = meteripaddr;
-        myJson["METERINTERVAL"] = meterinterval;
-        myJson["TIMER1TIME"] = timer1_time;
-        myJson["TIMER1WATT"] = timer1_watt;
-        myJson["TIMER2TIME"] = timer2_time;
-        myJson["TIMER2WATT"] = timer2_watt;
-        myJson["MQTTROOT"] = mqtt_root;
-        myJson["MQTTSTATECL"] = mqtt_state; // state client: connect/disconnect
+      rssi = WiFi.RSSI();
 
-        myJson["CBNULL"] = nulleinspeisung; //checkbox
-        if(nulleinspeisung){
-          myJson["NULLSTATE"] = "EIN";
-        } else{
+      myJson["WIFIRSSI"] = rssi;
+      myJson["CLIENTID"] = clientId;
+      myJson["METERNAME"] = metername;
+      myJson["MAXWATTINPUT"] = maxwatt;
+      myJson["NULLINTERVAL"] = nullinterval;
+      myJson["METERIP"] = meteripaddr;
+      myJson["METERINTERVAL"] = meterinterval;
+      myJson["TIMER1TIME"] = timer1_time;
+      myJson["TIMER1WATT"] = timer1_watt;
+      myJson["TIMER2TIME"] = timer2_time;
+      myJson["TIMER2WATT"] = timer2_watt;
+      myJson["MQTTROOT"] = mqtt_root;
+      myJson["MQTTSTATECL"] = mqtt_state; // state client: connect/disconnect
+
+      myJson["CBNULL"] = nulleinspeisung; //checkbox
+      if(nulleinspeisung){
+        myJson["NULLSTATE"] = "EIN";
+      } else{
           myJson["NULLSTATE"] = "AUS";
-        }
+      }
 
-        myJson["CBMQTTSTATE"] = mqttenabled; //checkbox
-        if(mqttenabled){
-          myJson["MQTTSTATE"] = "EIN";
-        } else{
+      myJson["CBMQTTSTATE"] = mqttenabled; //checkbox
+      if(mqttenabled){
+         myJson["MQTTSTATE"] = "EIN";
+      } else{
           myJson["MQTTSTATE"] = "AUS";
-        }
+      }
 
-        myJson["CBTIMER1"] = checkboxT1; //checkbox
-        myJson["CBTIMER2"] = checkboxT2; //checkbox
-         if(checkboxT1 || checkboxT2){
+      myJson["CBTIMER1"] = checkboxT1; //checkbox
+      myJson["CBTIMER2"] = checkboxT2; //checkbox
+      if(checkboxT1 || checkboxT2){
           myJson["TIMERSTATE"] = "EIN";
-        } else{
+      } else{
           myJson["TIMERSTATE"] = "AUS";
-        }
+      }
 
-        myJson["CBBATSCHUTZ"] = batschutz; //checkbox
-        if(batschutz){
-          myJson["BATTSTATE"] = "EIN";
-        } else{
-          myJson["BATTSTATE"] = "AUS";
-        }
+      myJson["CBBATSCHUTZ"] = batschutz; //checkbox
+      if(batschutz){
+         myJson["BATTSTATE"] = "EIN";
+      } else{
+         myJson["BATTSTATE"] = "AUS";
+      }
 
-        myJson["MQTTSERVER"] = mqtt_server;
-        myJson["MQTTPORT"] = mqtt_port;
-        myJson["UPTIME"] = uptime_str;
-        myJson["SOYOPOWER"] = soyo_power;
-        myJson["METERNAME"] = metername;
-        myJson["METERPOWER"] = meterpower;
-        myJson["METERL1"] = meterl1;
-        myJson["METERL2"] = meterl2;
-        myJson["METERL3"] = meterl3;
-        myJson["MQTT_SUB_1"] = String(soyo_power) + " W";
-        myJson["MQTT_BAT_SOC"] = String(mqtt_bat_soc, 1) + " %";
-        myJson["MQTT_BAT_V"] = String(mqtt_bat_voltage, 1) + " V";
-        myJson["BATSOCSTOP"] = batsocstop;
-        myJson["BATSOCSTART"] = batsocstart;
-        //long curRSSI = WiFi.RSSI;
-        myJson["WIFIQUALITI"] = dBmtoPercent(WiFi.RSSI());
+      myJson["MQTTSERVER"] = mqtt_server;
+      myJson["MQTTPORT"] = mqtt_port;
+      myJson["UPTIME"] = uptime_str;
+      myJson["SOYOPOWER"] = soyo_power;
+      myJson["METERNAME"] = metername;
+      myJson["METERPOWER"] = meterpower;
+      myJson["METERL1"] = meterl1;
+      myJson["METERL2"] = meterl2;
+      myJson["METERL3"] = meterl3;
+      myJson["MQTT_SUB_1"] = String(soyo_power) + " W";
+      myJson["MQTT_BAT_SOC"] = String(mqtt_bat_soc, 1) + " %";
+      myJson["MQTT_BAT_V"] = String(mqtt_bat_voltage, 1) + " V";
+      myJson["BATSOCSTOP"] = batsocstop;
+      myJson["BATSOCSTART"] = batsocstart;
+      myJson["WIFIQUALITI"] = dBmtoPercent(rssi);
 
 
-        serializeJson(myJson, message);
+      serializeJson(myJson, message);
 
       request->send(200, "application/json", message);
     });
