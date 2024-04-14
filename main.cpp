@@ -5,6 +5,7 @@
   # last Update
   16.03.2024 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
   03.04.2024 -> Statusübersicht bei geschlossenen details/summary boxen
+  14.04.2024 -> Falls Batterieschutz aktiviert, deaktiviere Regelung der Nulleinspeisung
 
   Wiring
   NodeMCU D1 - RS485 RO
@@ -100,12 +101,11 @@ unsigned long lastNullinterval = 0;
 unsigned long nullFineInterval = 500;
 unsigned long lastNullFineInterval = 0;  
 
-String msg = "";
-char msgData[64];
-
 //mqtt
 char mqtt_server[16] = "192.168.178.10";
 char mqtt_port[5] = "1889";
+String msg = "";
+char msgData[64];
 
 //default custom static IP
 char static_ip[16] = "192.168.178.250";
@@ -609,7 +609,7 @@ void checkTimer(){
       if((timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 0) || (timeInfo.tm_hour == t1_hour && timeInfo.tm_min == t1_min && timeInfo.tm_sec == 1) ){
         soyo_power = timer1_watt;
       }
-    }
+  }
 
   if (checkboxT2 == true){    
     int t2_hour = String(timer2_time).substring(0,2).toInt();
@@ -619,6 +619,7 @@ void checkTimer(){
       soyo_power = timer2_watt;
     }
   }
+
 }
 
 
@@ -882,29 +883,29 @@ void setup() {
       if(nulleinspeisung){
         myJson["NULLSTATE"] = "EIN";
       } else{
-          myJson["NULLSTATE"] = "AUS";
+        myJson["NULLSTATE"] = "AUS";
       }
 
       myJson["CBMQTTSTATE"] = mqttenabled; //checkbox
       if(mqttenabled){
-         myJson["MQTTSTATE"] = "EIN";
+        myJson["MQTTSTATE"] = "EIN";
       } else{
-          myJson["MQTTSTATE"] = "AUS";
+        myJson["MQTTSTATE"] = "AUS";
       }
 
       myJson["CBTIMER1"] = checkboxT1; //checkbox
       myJson["CBTIMER2"] = checkboxT2; //checkbox
       if(checkboxT1 || checkboxT2){
-          myJson["TIMERSTATE"] = "EIN";
+        myJson["TIMERSTATE"] = "EIN";
       } else{
-          myJson["TIMERSTATE"] = "AUS";
+        myJson["TIMERSTATE"] = "AUS";
       }
 
       myJson["CBBATSCHUTZ"] = batschutz; //checkbox
       if(batschutz){
-         myJson["BATTSTATE"] = "EIN";
+        myJson["BATTSTATE"] = "EIN";
       } else{
-         myJson["BATTSTATE"] = "AUS";
+        myJson["BATTSTATE"] = "AUS";
       }
 
       myJson["MQTTSERVER"] = mqtt_server;
@@ -1041,6 +1042,8 @@ void setup() {
             batschutz = true;
           } else {
             batschutz = false;
+            output_enabled = true; //wenn batschutz aus, dann freigabe fuer soyo output
+            DBG_PRINTLN("output_enabled = true");
           }
         }
       }    
@@ -1163,11 +1166,10 @@ void loop() {
     lastMeterinterval = millis();
   }
 
-
-  // timer to manage Nulleinspeisung  +/- 20 Watt
+  
+  // timer to manage Nulleinspeisung  +/- 20 Watt (10000ms)
   if ((millis() - lastNullinterval) > nullinterval) { 
-   
-    if(nulleinspeisung){            
+    if(nulleinspeisung && output_enabled){            
       if(shelly_power > 20){  
         DBG_PRINTLN("Nulleinspeisung > 20");
         soyo_power += shelly_power + 5; // + 5 Leistungsverluste SoyoSource! testen und anpassen
@@ -1185,15 +1187,12 @@ void loop() {
         }
       }
     }
-
     lastNullinterval = millis();
   }
 
-
-   //test timer Feinausregelung Nulleinspeisung  +/- 5 Watt (500ms)
+  //test timer Feinausregelung Nulleinspeisung  +/- 5 Watt (500ms)
   if ((millis() - lastNullFineInterval) > nullFineInterval) { 
-
-    if(nulleinspeisung){
+    if(nulleinspeisung && output_enabled){
       if(shelly_power >= 5 && shelly_power <= 20){  
         DBG_PRINTLN("Null fein +1");
         soyo_power += 1;
@@ -1204,16 +1203,14 @@ void loop() {
         soyo_power -= 1;
       }
     }
-
     lastNullFineInterval = millis();
   }
+  
 
-
-  // timer für uptime, SoyoSource Timer und BatSOCLimit
+  // timer für uptime, SoyoSource Timer und BatSOCLimit (1000ms)
   if ((millis() - lastTimerUptime) > timerUptime) {
-
     myUptime();
-    
+
     if(checkboxT1 || checkboxT2){
       checkTimer();
     }
@@ -1221,16 +1218,14 @@ void loop() {
     // check ob Batterie SOC < oder > eingestelltem Limit
     float mqttbatsoc_float = mqtt_bat_soc + 0.5;
     int mqttbatsoc_int = (int)mqttbatsoc_float;
-    //DBG_PRINT("outputenabled = ");
-    //DBG_PRINTLN(outputenabled);
-    
-    if(mqttbatsoc_int > 1){ // falls mqtt noch nicht verbunden oder nicht aktiv
+       
+    if(batschutz == true && mqttbatsoc_int > 1){ // falls mqtt noch nicht verbunden oder nicht aktiv
       if(mqttbatsoc_int <= batsocstop){
         output_enabled = false;
-        //DBG_PRINTLN("outputenabled = false");
+        //DBG_PRINTLN("output_enabled = false");
       }else if(mqttbatsoc_int >= batsocstart){
         output_enabled = true;
-        //DBG_PRINTLN("outputenabled = true");
+        //DBG_PRINTLN("output_enabled = true");
       }
     }
     
