@@ -324,6 +324,10 @@ const char index_html[] PROGMEM = R"rawliteral(
             <div class="flexColRight"><input type="number" min="0" max="2000" id="MAXWATTINPUT"/></div>
           </div>
           <div class="flexContainer">
+            <div class="flexColLeft">Nullpunkt-Offset [W]:</div>
+            <div class="flexColRight"><input type="number" min="0" max="200" id="NULLOFFSET" /></div>
+          </div>
+          <div class="flexContainer">
             <div class="flexColLeft">Interval [ms]:</div>
             <div class="flexColRight"><input type="number" min="500" max="30000" id="NULLINTERVAL" /></div>
           </div>
@@ -494,6 +498,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("METERINTERVAL").value      = data_start.METERINTERVAL
       document.getElementById("MAXWATTINPUT").value       = data_start.MAXWATTINPUT
       document.getElementById("NULLINTERVAL").value       = data_start.NULLINTERVAL
+      document.getElementById("NULLOFFSET").value         = data_start.NULLOFFSET
       document.getElementById("TIMER1TIME").value         = data_start.TIMER1TIME
       document.getElementById("TIMER2TIME").value         = data_start.TIMER2TIME
       document.getElementById("TIMER1WATT").value         = data_start.TIMER1WATT
@@ -596,6 +601,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     var meterinterval = document.getElementById("METERINTERVAL").value;
     var maxwatt = document.getElementById("MAXWATTINPUT").value;
     var nullinterval = document.getElementById("NULLINTERVAL").value;
+    var nulloffset = document.getElementById("NULLOFFSET").value;
 
     var mqttserver = document.getElementById("MQTTSERVER").value;
     var mqttport = document.getElementById("MQTTPORT").value;
@@ -607,7 +613,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "/savesettings?t1=" + timer1_time + "&w1=" + timer1_watt + "&t2=" + timer2_time + "&w2=" + timer2_watt +
      "&meteripaddr=" + meteripaddr + "&meterinterval=" + meterinterval + "&maxwatt=" + maxwatt +
-     "&nullinterval=" + nullinterval + "&mqttserver=" + mqttserver + "&mqttport=" + mqttport +
+     "&nullinterval=" + nullinterval + "&nulloffset=" + nulloffset + "&mqttserver=" + mqttserver + "&mqttport=" + mqttport +
      "&batsocstop=" + batsocstop + "&batsocstart=" + batsocstart, true);
     xhr.send();    
   };

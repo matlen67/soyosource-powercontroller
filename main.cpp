@@ -6,6 +6,8 @@
   16.03.2024 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
   03.04.2024 -> Statusübersicht bei geschlossenen details/summary boxen
   14.04.2024 -> Falls Batterieschutz aktiviert, deaktiviere Regelung der Nulleinspeisung
+  25.04.2024 -> Leistungspunkt bei Nulleinspeisung festlegen
+                (Bei mir funktioniert gut Intervall Shelly 1000ms & Intervall Nulleinspeisung 4000ms)
 
   Wiring
   NodeMCU D1 - RS485 RO
@@ -66,7 +68,6 @@ char dbgbuffer[128];
 #define MY_TZ "CET-1CEST,M3.5.0/2,M10.5.0/3"   
 
 
-
 SoftwareSerial RS485Serial(RXPin, TXPin); // RX, TX
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -98,8 +99,7 @@ unsigned long lastMeterinterval = 0;
 unsigned long nullinterval = 10000;
 unsigned long lastNullinterval = 0;  
 
-unsigned long nullFineInterval = 500;
-unsigned long lastNullFineInterval = 0;  
+
 
 //mqtt
 char mqtt_server[16] = "192.168.178.10";
@@ -170,7 +170,8 @@ String shelly_ip = "";
 int shelly_typ = 0 ; 
 
 //nulleinspeisung
-int shelly_power = 0;
+int nulloffset = 0;
+int meter_power = 0;
 int meterpower = 0;
 int meterl1 = 0;
 int meterl2 = 0;
@@ -428,6 +429,7 @@ void saveConfig(){
   json["meteripaddr"] = meteripaddr;
   json["meterinterval"] = meterinterval;
   json["nullinterval"] = nullinterval;
+  json["nulloffset"] = nulloffset;
   json["batsocstop"] = batsocstop;
   json["batsocstart"] = batsocstart;
   
@@ -772,6 +774,10 @@ void setup() {
             nullinterval = json["nullinterval"]; 
           }
 
+          if(json.containsKey("nulloffset")){
+            nulloffset = json["nulloffset"]; 
+          }
+
           if(json.containsKey("batsocstop")){
             batsocstop = json["batsocstop"]; 
           }
@@ -870,6 +876,7 @@ void setup() {
       myJson["METERNAME"] = metername;
       myJson["MAXWATTINPUT"] = maxwatt;
       myJson["NULLINTERVAL"] = nullinterval;
+      myJson["NULLOFFSET"] = nulloffset;
       myJson["METERIP"] = meteripaddr;
       myJson["METERINTERVAL"] = meterinterval;
       myJson["TIMER1TIME"] = timer1_time;
@@ -1081,6 +1088,9 @@ void setup() {
       value =  request->getParam("nullinterval")->value();
       nullinterval = atol(value.c_str());
 
+      value =  request->getParam("nulloffset")->value();
+      nulloffset = atoi(value.c_str());
+
       value =  request->getParam("mqttserver")->value();
       memset(mqtt_server, 0, sizeof(mqtt_server)); 
       strcat(mqtt_server, value.c_str());
@@ -1130,7 +1140,7 @@ void loop() {
   }
 
 
-  // send current power to SoyoSource every 555 ms
+  // send current power to SoyoSource
   if ((millis() - lastTimerSoyoSource) > timerSoyoSource) {
 
     if(batschutz == true && output_enabled == false){ // wenn batterie soc < limit dann soyo_power =0 
@@ -1154,10 +1164,10 @@ void loop() {
   }
 
 
-  // timer to get Shelly3EM data (1000ms)
+  // timer to get Shelly3EM data
   if ((millis() - lastMeterinterval) > meterinterval) {  
     if (shelly_typ > 0){
-      shelly_power = getMeterData(shelly_typ);
+      meter_power = getMeterData(shelly_typ);
     } else{
       shelly_typ = getShellyTyp();
       DBG_PRINTLN("Kein Shelly erkannt! Bitte IP eintragen, speichern und ESP neu starten.");
@@ -1167,47 +1177,31 @@ void loop() {
   }
 
   
-  // timer to manage Nulleinspeisung  +/- 20 Watt (10000ms)
+  // timer to manage Nulleinspeisung
   if ((millis() - lastNullinterval) > nullinterval) { 
-    if(nulleinspeisung && output_enabled){            
-      if(shelly_power > 20){  
-        DBG_PRINTLN("Nulleinspeisung > 20");
-        soyo_power += shelly_power + 5; // + 5 Leistungsverluste SoyoSource! testen und anpassen
+    if(nulleinspeisung && output_enabled){        
+      if(meter_power > nulloffset + 10){  
+        soyo_power += meter_power - nulloffset; 
+
         if(soyo_power > maxwatt){
           soyo_power = maxwatt;
         } 
       } 
   
-      if(shelly_power < 0){
-        DBG_PRINTLN("Nulleinspeisung < 0");
-        soyo_power += shelly_power; // += auch wenn meter im minus (-50) ist!
-
+      if(meter_power < 0 + nulloffset ){
+        soyo_power += meter_power - nulloffset; 
+       
         if(soyo_power < 0){
           soyo_power = 0;
         }
       }
+
     }
     lastNullinterval = millis();
   }
 
-  //test timer Feinausregelung Nulleinspeisung  +/- 5 Watt (500ms)
-  if ((millis() - lastNullFineInterval) > nullFineInterval) { 
-    if(nulleinspeisung && output_enabled){
-      if(shelly_power >= 5 && shelly_power <= 20){  
-        DBG_PRINTLN("Null fein +1");
-        soyo_power += 1;
-      } 
-      
-      if(shelly_power <= -5 ){
-        DBG_PRINTLN("Null fein -1");
-        soyo_power -= 1;
-      }
-    }
-    lastNullFineInterval = millis();
-  }
-  
 
-  // timer für uptime, SoyoSource Timer und BatSOCLimit (1000ms)
+  // timer für uptime, SoyoSource Timer und BatSOCLimit
   if ((millis() - lastTimerUptime) > timerUptime) {
     myUptime();
 
@@ -1222,10 +1216,8 @@ void loop() {
     if(batschutz == true && mqttbatsoc_int > 1){ // falls mqtt noch nicht verbunden oder nicht aktiv
       if(mqttbatsoc_int <= batsocstop){
         output_enabled = false;
-        //DBG_PRINTLN("output_enabled = false");
       }else if(mqttbatsoc_int >= batsocstart){
         output_enabled = true;
-        //DBG_PRINTLN("output_enabled = true");
       }
     }
     
