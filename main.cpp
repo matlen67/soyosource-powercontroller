@@ -1,6 +1,6 @@
 /***************************************************************************
   soyosource-powercontroller @matlen67
-  Version: 1.0 /  17.12.2023
+  Version: 1.24.0425
 
   # last Update
   16.03.2024 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
