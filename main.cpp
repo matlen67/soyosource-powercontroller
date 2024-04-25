@@ -562,9 +562,9 @@ int getMeterData(int typ) {
           power2 = doc["em:0"]["b_act_power"];
           power3 = doc["em:0"]["c_act_power"]; 
         } else if (typ == 2) {
-          power1 = doc["emeter"]["0"]["power"]; //Shelly 3EM
-          power2 = doc["emeter"]["1"]["power"]; 
-          power3 = doc["emeter"]["2"]["power"]; 
+          power1 = doc["emeters"]["0"]["power"]; //Shelly 3EM
+          power2 = doc["emeters"]["1"]["power"]; 
+          power3 = doc["emeters"]["2"]["power"]; 
         } else if (typ == 3) {
           power1 = doc["meters"]["0"]["power"]; // Shelly EM Kanal 1
           power2 = doc["meters"]["1"]["power"]; // Shelly EM Kanal 2
