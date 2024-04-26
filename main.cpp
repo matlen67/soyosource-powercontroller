@@ -1,6 +1,6 @@
 /***************************************************************************
   soyosource-powercontroller @matlen67
-  Version: 1.24.0425
+  Version: 1.24.0426
 
   # last Update
   16.03.2024 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
@@ -8,7 +8,10 @@
   14.04.2024 -> Falls Batterieschutz aktiviert, deaktiviere Regelung der Nulleinspeisung
   25.04.2024 -> Leistungspunkt bei Nulleinspeisung festlegen
                 (Bei mir funktioniert gut Intervall Shelly 1000ms & Intervall Nulleinspeisung 4000ms)
+  26.04.2024 -> Auswahl der aktiven Leiter (L1, L2, L3) beim Shelly
 
+
+  *************************
   Wiring
   NodeMCU D1 - RS485 RO
   NodeMCU D3 - RS485 DE/RE
@@ -152,11 +155,14 @@ int timer2_watt = 0;
 int maxwatt = 0;
 
 //state checkboxes
-bool checkboxT1 = false;
-bool checkboxT2 = false;
-bool mqttenabled = false;
-bool nulleinspeisung = false;
-bool batschutz = false;
+bool checkbox_timer1 = false;
+bool checkbox_timer2 = false;
+bool checkbox_mqttenabled = false;
+bool checkbox_nulleinspeisung = false;
+bool checkbox_batschutz = false;
+bool checkbox_meter_l1 = true;
+bool checkbox_meter_l2 = true;
+bool checkbox_meter_l3 = true;
 
 char metername[24] = "Meter";
 char mqtt_state[20] = "disabled";
@@ -260,16 +266,6 @@ void myUptime(){
 
 //callback from mqtt
 void mqtt_callback(char* topic, byte* payload, unsigned int length) {  
-  //
-  //DBG_PRINT("Message arrived [");
-  //DBG_PRINT(topic);
-  //DBG_PRINT("] ");
-  //for (int i=0;i<length;i++) {
-  //  DBG_PRINT((char)payload[i]);
-  //}
-  //DBG_PRINTLN("");
-  //
-
   unsigned int i = 0;
 
   for (i=0;i<length;i++) {
@@ -293,12 +289,10 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
     float arrived_value_f = atof(buffer);
     mqtt_bat_voltage = arrived_value_f;
   }
-
 }
 
 
-String processor(const String& var){
-  //DEBUG_SERIAL.println(var);      
+String processor(const String& var){ 
   return String();
 }
 
@@ -352,9 +346,6 @@ void reconnect() {
     }
   }
 
-  //if(!mqttenabled){
-  //  strcpy(mqtt_state, "disconnect");
-  //}
 }
 
 
@@ -388,35 +379,55 @@ void saveConfig(){
   json["mqtt_server"] = mqtt_server;
   json["mqtt_port"] = mqtt_port;
 
-  if(mqttenabled){
+  if(checkbox_mqttenabled){
     json["mqttenabled"] = "1";
   }else{
     json["mqttenabled"] = "0";
   }
 
-  if(nulleinspeisung){
+  if(checkbox_nulleinspeisung){
     json["nulleinspeisung"] = "1";
   }else{
     json["nulleinspeisung"] = "0";
   }
 
-  if(batschutz){
+  if(checkbox_batschutz){
     json["batschutz"] = "1";
   }else{
     json["batschutz"] = "0";
   }
 
-  if(checkboxT1){
+  if(checkbox_timer1){
     json["timer1_aktiv"] = "1";
   }else{
     json["timer1_aktiv"] = "0";
   }
 
-  if(checkboxT2){
+  if(checkbox_timer2){
     json["timer2_aktiv"] = "1";
   }else{
     json["timer2_aktiv"] = "0";
   }
+
+  if(checkbox_meter_l1){
+    json["meter_l1_aktiv"] = "1";
+  }else{
+    json["meter_l1_aktiv"] = "0";
+  }
+
+   if(checkbox_meter_l2){
+    json["meter_l2_aktiv"] = "1";
+  }else{
+    json["meter_l2_aktiv"] = "0";
+  }
+
+   if(checkbox_meter_l3){
+    json["meter_l3_aktiv"] = "1";
+  }else{
+    json["meter_l3_aktiv"] = "0";
+  }
+
+
 
   json["ip"] = WiFi.localIP().toString();
   json["gateway"] = WiFi.gatewayIP().toString();
@@ -575,6 +586,19 @@ int getMeterData(int typ) {
           power3 = 0;   
         }
         
+        if(!checkbox_meter_l1){
+          power1 = 0;
+        }
+
+        if(!checkbox_meter_l2){
+          power2 = 0;
+        }
+
+        if(!checkbox_meter_l3){
+          power3 = 0;
+        }
+
+
         power = power1 + power2 + power3;
 
         meterpower = power;
@@ -604,7 +628,7 @@ void checkTimer(){
   time(&now);
   localtime_r(&now, &timeInfo);
 
-  if (checkboxT1 == true){      
+  if (checkbox_timer1 == true){      
       int t1_hour = String(timer1_time).substring(0,2).toInt();
       int t1_min = String(timer1_time).substring(3).toInt();
 
@@ -613,7 +637,7 @@ void checkTimer(){
       }
   }
 
-  if (checkboxT2 == true){    
+  if (checkbox_timer2 == true){    
     int t2_hour = String(timer2_time).substring(0,2).toInt();
     int t2_min = String(timer2_time).substring(3).toInt();  
      
@@ -686,57 +710,93 @@ void setup() {
           strcpy(mqtt_server, json["mqtt_server"]);
           strcpy(mqtt_port, json["mqtt_port"]);
 
+          char key_value[2];
+
           if(json.containsKey("mqttenabled")){
-            char json_mqttstate[2];
-            strcpy(json_mqttstate, json["mqttenabled"]);
-            if(strcmp(json_mqttstate, "1") == 0){
-              mqttenabled = true;
+            //char json_mqttstate[2];
+            strcpy(key_value, json["mqttenabled"]);
+            if(strcmp(key_value, "1") == 0){
+              checkbox_mqttenabled = true;
             }else{
-              mqttenabled = false;
+              checkbox_mqttenabled = false;
             }
           }
 
           if(json.containsKey("nulleinspeisung")){
-            char json_nullstate[2];
-            strcpy(json_nullstate, json["nulleinspeisung"]);
+            //char json_nullstate[2];
+            strcpy(key_value, json["nulleinspeisung"]);
 
-            if(strcmp(json_nullstate, "1") == 0){
-              nulleinspeisung = true;
+            if(strcmp(key_value, "1") == 0){
+              checkbox_nulleinspeisung = true;
             }else{
-              nulleinspeisung = false;
+              checkbox_nulleinspeisung = false;
             }
           }
 
           if(json.containsKey("batschutz")){
-            char json_batschutzstate[2];
-            strcpy(json_batschutzstate, json["batschutz"]);
+            //char json_batschutzstate[2];
+            strcpy(key_value, json["batschutz"]);
 
-            if(strcmp(json_batschutzstate, "1") == 0){
-              batschutz = true;
+            if(strcmp(key_value, "1") == 0){
+              checkbox_batschutz = true;
             }else{
-              batschutz = false;
+              checkbox_batschutz = false;
             }
           }
 
           if(json.containsKey("timer1_aktiv")){
-            char json_timer1_aktiv[2];
-            strcpy(json_timer1_aktiv, json["timer1_aktiv"]);
+            //char json_timer1_aktiv[2];
+            strcpy(key_value, json["timer1_aktiv"]);
 
-            if(strcmp(json_timer1_aktiv, "1") == 0){
-              checkboxT1 = true;
+            if(strcmp(key_value, "1") == 0){
+              checkbox_timer1 = true;
             }else{
-              checkboxT1 = false;
+              checkbox_timer1 = false;
             }
           }
 
           if(json.containsKey("timer2_aktiv")){
-            char json_timer2_aktiv[2];
-            strcpy(json_timer2_aktiv, json["timer2_aktiv"]);
+            //char json_timer2_aktiv[2];
+            strcpy(key_value, json["timer2_aktiv"]);
 
-            if(strcmp(json_timer2_aktiv, "1") == 0){
-              checkboxT2 = true;
+            if(strcmp(key_value, "1") == 0){
+              checkbox_timer2 = true;
             }else{
-              checkboxT2 = false;
+              checkbox_timer2 = false;
+            }
+          }
+
+          //meter_l1_aktiv
+          if(json.containsKey("meter_l1_aktiv")){
+            //char json_meter_l1_aktiv[2];
+            strcpy(key_value, json["meter_l1_aktiv"]);
+
+            if(strcmp(key_value, "1") == 0){
+              checkbox_meter_l1 = true;
+            }else{
+              checkbox_meter_l1 = false;
+            }
+          }
+
+          if(json.containsKey("meter_l2_aktiv")){
+            //char json_meter_l2_aktiv[2];
+            strcpy(key_value, json["meter_l2_aktiv"]);
+
+            if(strcmp(key_value, "1") == 0){
+              checkbox_meter_l2 = true;
+            }else{
+              checkbox_meter_l2 = false;
+            }
+          }
+
+          if(json.containsKey("meter_l3_aktiv")){
+            //char json_meter_l3_aktiv[2];
+            strcpy(key_value, json["meter_l3_aktiv"]);
+
+            if(strcmp(key_value, "1") == 0){
+              checkbox_meter_l3 = true;
+            }else{
+              checkbox_meter_l3 = false;
             }
           }
 
@@ -836,8 +896,8 @@ void setup() {
       saveConfig();
     }
 
-    DBG_PRINTLN(String("mqttenabled: ") + mqttenabled);
-    if(mqttenabled){
+    DBG_PRINTLN(String("mqttenabled: ") + checkbox_mqttenabled);
+    if(checkbox_mqttenabled){
       DBG_PRINTLN("set mqtt server!");
       DBG_PRINTLN(String("mqtt_server: ") + mqtt_server);
       DBG_PRINTLN(String("mqtt_port: ") + mqtt_port);
@@ -886,34 +946,38 @@ void setup() {
       myJson["MQTTROOT"] = mqtt_root;
       myJson["MQTTSTATECL"] = mqtt_state; // state client: connect/disconnect
 
-      myJson["CBNULL"] = nulleinspeisung; //checkbox
-      if(nulleinspeisung){
+      myJson["CBNULL"] = checkbox_nulleinspeisung; //checkbox
+      if(checkbox_nulleinspeisung){       // Stausanzeige
         myJson["NULLSTATE"] = "EIN";
       } else{
         myJson["NULLSTATE"] = "AUS";
       }
 
-      myJson["CBMQTTSTATE"] = mqttenabled; //checkbox
-      if(mqttenabled){
+      myJson["CBMQTTSTATE"] = checkbox_mqttenabled; //checkbox
+      if(checkbox_mqttenabled){
         myJson["MQTTSTATE"] = "EIN";
       } else{
         myJson["MQTTSTATE"] = "AUS";
       }
 
-      myJson["CBTIMER1"] = checkboxT1; //checkbox
-      myJson["CBTIMER2"] = checkboxT2; //checkbox
-      if(checkboxT1 || checkboxT2){
+      myJson["CBTIMER1"] = checkbox_timer1; //checkbox
+      myJson["CBTIMER2"] = checkbox_timer2; //checkbox
+      if(checkbox_timer1 || checkbox_timer2){
         myJson["TIMERSTATE"] = "EIN";
       } else{
         myJson["TIMERSTATE"] = "AUS";
       }
 
-      myJson["CBBATSCHUTZ"] = batschutz; //checkbox
-      if(batschutz){
+      myJson["CBBATSCHUTZ"] = checkbox_batschutz; //checkbox
+      if(checkbox_batschutz){
         myJson["BATTSTATE"] = "EIN";
       } else{
         myJson["BATTSTATE"] = "AUS";
       }
+
+      myJson["CBMETERL1"] = checkbox_meter_l1; //checkbox
+      myJson["CBMETERL2"] = checkbox_meter_l2; //checkbox
+      myJson["CBMETERL3"] = checkbox_meter_l3; //checkbox
 
       myJson["MQTTSERVER"] = mqtt_server;
       myJson["MQTTPORT"] = mqtt_port;
@@ -964,21 +1028,21 @@ void setup() {
         if(parm1.equals("/s0") ){
           soyo_power = 0;
           sprintf(msgData, "%d", soyo_power);
-          if(mqttenabled){
+          if(checkbox_mqttenabled){
             client.publish(topic_power, msgData);
           }
         }
         else if(parm1.equals("/p1")){
           soyo_power +=1;
           sprintf(msgData, "%d", soyo_power);
-          if(mqttenabled){
+          if(checkbox_mqttenabled){
             client.publish(topic_power, msgData);
           }
         }
         else if(parm1.equals("/p10")){
           soyo_power +=10;
           sprintf(msgData, "%d", soyo_power);
-          if(mqttenabled){
+          if(checkbox_mqttenabled){
             client.publish(topic_power, msgData);
           }
         }
@@ -988,7 +1052,7 @@ void setup() {
             soyo_power = 0;
            }
           sprintf(msgData, "%d", soyo_power);
-          if(mqttenabled){
+          if(checkbox_mqttenabled){
             client.publish(topic_power, msgData);
           }
         }
@@ -998,7 +1062,7 @@ void setup() {
             soyo_power = 0;
            }
           sprintf(msgData, "%d", soyo_power);
-          if(mqttenabled){
+          if(checkbox_mqttenabled){
             client.publish(topic_power, msgData);
           }
         }
@@ -1017,40 +1081,60 @@ void setup() {
        
         if(checkbox_id.equals("CBTIMER1")){
           if(checkbox_value.equals("1")){
-            checkboxT1 = true;
+            checkbox_timer1 = true;
           } else {
-            checkboxT1 = false;
+            checkbox_timer1 = false;
           }
         }
         else if(checkbox_id.equals("CBTIMER2")){
           if(checkbox_value.equals("1")){
-            checkboxT2 = true;
+            checkbox_timer2 = true;
           } else { 
-            checkboxT2 = false;
+            checkbox_timer2 = false;
           }
         }
         else if(checkbox_id.equals("CBMQTTSTATE")){
           if(checkbox_value.equals("1")){
-            mqttenabled = true;
+            checkbox_mqttenabled = true;
           } else {
-            mqttenabled = false;
+            checkbox_mqttenabled = false;
           }
         }
         else if(checkbox_id.equals("CBNULL")){
           if(checkbox_value.equals("1")){
-            nulleinspeisung = true;
+            checkbox_nulleinspeisung = true;
           } else {
-            nulleinspeisung = false;
+            checkbox_nulleinspeisung = false;
             soyo_power = 0;
           }
         }
         else if(checkbox_id.equals("CBBATSCHUTZ")){
           if(checkbox_value.equals("1")){
-            batschutz = true;
+            checkbox_batschutz = true;
           } else {
-            batschutz = false;
+            checkbox_batschutz = false;
             output_enabled = true; //wenn batschutz aus, dann freigabe fuer soyo output
-            DBG_PRINTLN("output_enabled = true");
+          }
+        }
+        else if(checkbox_id.equals("CBMETERL1")){
+          if(checkbox_value.equals("1")){
+            checkbox_meter_l1 = true;
+          } else {
+            checkbox_meter_l1 = false;
+          }
+        }
+        else if(checkbox_id.equals("CBMETERL2")){
+          if(checkbox_value.equals("1")){
+            checkbox_meter_l2 = true;
+          } else {
+            checkbox_meter_l2 = false;
+          }
+        }
+        else if(checkbox_id.equals("CBMETERL3")){
+          if(checkbox_value.equals("1")){
+            checkbox_meter_l3 = true;
+          } else {
+            checkbox_meter_l3 = false;
           }
         }
       }    
@@ -1131,7 +1215,7 @@ void setup() {
 void loop() {
   SerialAndTelnet.handle();
   
-  if(mqttenabled){
+  if(checkbox_mqttenabled){
     if (!client.connected()) {
       DBG_PRINTLN("lost mqtt connection -> start reconncect");
       reconnect();
@@ -1143,7 +1227,7 @@ void loop() {
   // send current power to SoyoSource
   if ((millis() - lastTimerSoyoSource) > timerSoyoSource) {
 
-    if(batschutz == true && output_enabled == false){ // wenn batterie soc < limit dann soyo_power =0 
+    if(checkbox_batschutz == true && output_enabled == false){ // wenn batterie soc < limit dann soyo_power =0 
       soyo_power = 0;
     }
 
@@ -1155,7 +1239,7 @@ void loop() {
       DBG_PRINTLN(dbgbuffer);
     }
 
-    if(mqttenabled){
+    if(checkbox_mqttenabled){
       sprintf(msgData, "%d", soyo_power);
       client.publish(topic_power, msgData);
     }
@@ -1179,7 +1263,7 @@ void loop() {
   
   // timer to manage Nulleinspeisung
   if ((millis() - lastNullinterval) > nullinterval) { 
-    if(nulleinspeisung && output_enabled){        
+    if(checkbox_nulleinspeisung && output_enabled){        
       if(meter_power > nulloffset + 10){  
         soyo_power += meter_power - nulloffset; 
 
@@ -1205,7 +1289,7 @@ void loop() {
   if ((millis() - lastTimerUptime) > timerUptime) {
     myUptime();
 
-    if(checkboxT1 || checkboxT2){
+    if(checkbox_timer1 || checkbox_timer2){
       checkTimer();
     }
 
@@ -1213,7 +1297,7 @@ void loop() {
     float mqttbatsoc_float = mqtt_bat_soc + 0.5;
     int mqttbatsoc_int = (int)mqttbatsoc_float;
        
-    if(batschutz == true && mqttbatsoc_int > 1){ // falls mqtt noch nicht verbunden oder nicht aktiv
+    if(checkbox_batschutz == true && mqttbatsoc_int > 1){ // falls mqtt noch nicht verbunden oder nicht aktiv
       if(mqttbatsoc_int <= batsocstop){
         output_enabled = false;
       }else if(mqttbatsoc_int >= batsocstart){

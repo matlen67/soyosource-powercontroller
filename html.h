@@ -277,15 +277,15 @@ const char index_html[] PROGMEM = R"rawliteral(
           </summary>
           <hr>
           <div class="flexContainer">
-            <div class="flexColLeft">L1 [W]:</div>
+            <div class="flexColLeft"><input type="checkbox" onchange="toggleCheckbox(this)" id="CBMETERL1"/> L1 [W]:</div>
             <div class="flexColRight" id="METERL1">999</div>
           </div>
           <div class="flexContainer">
-            <div class="flexColLeft">L2 [W]:</div>
+            <div class="flexColLeft"><input type="checkbox" onchange="toggleCheckbox(this)" id="CBMETERL2"/> L2 [W]:</div>
             <div class="flexColRight" id="METERL2">999</div>
           </div>
           <div class="flexContainer">
-            <div class="flexColLeft">L3 [W]:</div>
+            <div class="flexColLeft"><input type="checkbox" onchange="toggleCheckbox(this)" id="CBMETERL3"/> L3 [W]:</div>
             <div class="flexColRight" id="METERL3">999</div>
           </div>
           <hr>
@@ -512,6 +512,9 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("BATSOCSTOP").value         = data_start.BATSOCSTOP
       document.getElementById("BATSOCSTART").value        = data_start.BATSOCSTART
       document.getElementById("CBBATSCHUTZ").checked      = data_start.CBBATSCHUTZ
+      document.getElementById("CBMETERL1").checked        = data_start.CBMETERL1
+      document.getElementById("CBMETERL2").checked        = data_start.CBMETERL2
+      document.getElementById("CBMETERL3").checked        = data_start.CBMETERL3
       
 
 
@@ -612,9 +615,8 @@ const char index_html[] PROGMEM = R"rawliteral(
     let text = "Save Settings!\nPress OK or Cancel.";
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "/savesettings?t1=" + timer1_time + "&w1=" + timer1_watt + "&t2=" + timer2_time + "&w2=" + timer2_watt +
-     "&meteripaddr=" + meteripaddr + "&meterinterval=" + meterinterval + "&maxwatt=" + maxwatt +
-     "&nullinterval=" + nullinterval + "&nulloffset=" + nulloffset + "&mqttserver=" + mqttserver + "&mqttport=" + mqttport +
-     "&batsocstop=" + batsocstop + "&batsocstart=" + batsocstart, true);
+     "&meteripaddr=" + meteripaddr + "&meterinterval=" + meterinterval + "&maxwatt=" + maxwatt + "&nullinterval=" + nullinterval +
+     "&nulloffset=" + nulloffset + "&mqttserver=" + mqttserver + "&mqttport=" + mqttport + "&batsocstop=" + batsocstop + "&batsocstart=" + batsocstart, true);
     xhr.send();    
   };
 
