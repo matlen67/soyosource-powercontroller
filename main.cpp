@@ -498,20 +498,12 @@ int getShellyTyp(){
           DBG_PRINTLN(error.f_str());
         }
 
-        //test auf Shelly 3EM Pro
-        //index = payload.indexOf("SPEM");
-        if( payload.indexOf("SPEM") >= 0 ) {
-          typ = shelly_3em_pro;
+         //test auf Shelly 1PM
+        if(payload.indexOf("SHSW-PM") >= 0){
+          typ = shelly_1pm;
           memset(metername, 0, sizeof(metername)); 
-          strcat(metername, "Shelly 3EM Pro");     
+          strcat(metername, "Shelly 1PM");   
         } 
-
-        //test auf Shelly 3EM
-        if( payload.indexOf("SEM") >= 0 ){
-          typ = shelly_3em;
-          memset(metername, 0, sizeof(metername)); 
-          strcat(metername, "Shelly 3EM");   
-        }
 
         //test auf Shelly EM
         if(payload.indexOf("SHEM") >= 0 ){
@@ -520,12 +512,21 @@ int getShellyTyp(){
           strcat(metername, "Shelly EM");   
         }
 
-         //test auf Shelly 1PM
-        if(payload.indexOf("SHSW-PM") >= 0){
-          typ = shelly_1pm;
+        //test auf Shelly 3EM
+        if( payload.indexOf("SHEM-3") >= 0 ){
+          typ = shelly_3em;
           memset(metername, 0, sizeof(metername)); 
-          strcat(metername, "Shelly 1PM");   
+          strcat(metername, "Shelly 3EM");   
+        }
+
+        //test auf Shelly 3EM Pro
+        if( payload.indexOf("SPEM") >= 0 ) {
+          typ = shelly_3em_pro;
+          memset(metername, 0, sizeof(metername)); 
+          strcat(metername, "Shelly 3EM Pro");     
         } 
+
+    
       }
     }
     http.end();
@@ -949,14 +950,14 @@ void setup() {
       myJson["CBNULL"] = checkbox_nulleinspeisung; //checkbox
       if(checkbox_nulleinspeisung){       // Stausanzeige
         myJson["NULLSTATE"] = "EIN";
-      } else{
+      }else{
         myJson["NULLSTATE"] = "AUS";
       }
 
       myJson["CBMQTTSTATE"] = checkbox_mqttenabled; //checkbox
       if(checkbox_mqttenabled){
         myJson["MQTTSTATE"] = "EIN";
-      } else{
+      }else{
         myJson["MQTTSTATE"] = "AUS";
       }
 
@@ -964,20 +965,20 @@ void setup() {
       myJson["CBTIMER2"] = checkbox_timer2; //checkbox
       if(checkbox_timer1 || checkbox_timer2){
         myJson["TIMERSTATE"] = "EIN";
-      } else{
+      }else{
         myJson["TIMERSTATE"] = "AUS";
       }
 
       myJson["CBBATSCHUTZ"] = checkbox_batschutz; //checkbox
       if(checkbox_batschutz){
         myJson["BATTSTATE"] = "EIN";
-      } else{
+      }else{
         myJson["BATTSTATE"] = "AUS";
       }
 
-      myJson["CBMETERL1"] = checkbox_meter_l1; //checkbox
-      myJson["CBMETERL2"] = checkbox_meter_l2; //checkbox
-      myJson["CBMETERL3"] = checkbox_meter_l3; //checkbox
+      myJson["CBMETERL1"] = checkbox_meter_l1; //checkbox Shelly L1
+      myJson["CBMETERL2"] = checkbox_meter_l2; //checkbox Shelly L2
+      myJson["CBMETERL3"] = checkbox_meter_l3; //checkbox Shelly L3
 
       myJson["MQTTSERVER"] = mqtt_server;
       myJson["MQTTPORT"] = mqtt_port;
