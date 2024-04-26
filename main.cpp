@@ -507,14 +507,14 @@ int getShellyTyp(){
         } 
 
         //test auf Shelly 3EM
-        if( payload.indexOf("SEM") >= 0 ){
+        if(payload.indexOf("SHEM-3") >= 0 ){
           typ = shelly_3em;
           memset(metername, 0, sizeof(metername)); 
           strcat(metername, "Shelly 3EM");   
         }
 
         //test auf Shelly EM
-        if(payload.indexOf("SHEM") >= 0 ){
+        if(payload.indexOf("SHEM") >= 0 && payload.indexOf("SHEM-3") < 0){
           typ = shelly_em;
           memset(metername, 0, sizeof(metername)); 
           strcat(metername, "Shelly EM");   
