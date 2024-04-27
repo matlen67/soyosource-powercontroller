@@ -15,7 +15,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     body {  margin: 0;}
     .title1 { font-size: 1.2rem; font-weight: bold; color: #034078; }
     .alnright { text-align: right; }
-    .topnav { overflow: hidden; background-color: #263c5e; color: white; font-size: 1.5rem; }
+    .topnav { overflow: hidden; background-color: #263c5e; color: white; font-size:1.5rem; margin:0px; padding:0px }
     .content { padding: 10px; }
     .card { background-color: white; padding: 5px; box-shadow: 2px 2px 12px 1px rgba(140,140,140,.5); }
     .card-grid { max-width: 700px; margin: 0 auto; display: grid; grid-gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(20em, 1fr)); }
@@ -183,6 +183,16 @@ const char index_html[] PROGMEM = R"rawliteral(
       text-align: left;
     }
 
+   
+    .version {
+      top: -40%;
+      right: -170px;
+      font-size: 40%;
+      margin-top: -25px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
   </style>
 
 </head>
@@ -190,6 +200,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
   <div class="topnav">
     <h3>SoyoSource-PowerController</h3>
+    <div class="version">v 1.240427.1</div>
   </div>
 
   <div class="content">
