@@ -1,6 +1,6 @@
 /***************************************************************************
   soyosource-powercontroller @matlen67
-  Version: 1.24.0426
+  Version: 1.24.0427
 
   # last Update
   16.03.2024 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
@@ -473,7 +473,7 @@ void disconnectClientWrapper() {
 }
 
 
-// get shelly typ(3EM PRO, 3EM, EM, 1PM)
+// get shelly type(3EM PRO, 3EM, EM, 1PM)
 int getShellyType(){ 
   String shelly_url = "http://" + shelly_ip +  "/shelly";
   int type = 0;
@@ -522,15 +522,12 @@ int getShellyType(){
           strcat(metername, "Shelly 3EM");   
         }
 
-       
         //test auf Shelly 3EM Pro
         if(payload.indexOf("SPEM") >= 0 ) {
           type = shelly_3em_pro;
           memset(metername, 0, sizeof(metername)); 
           strcat(metername, "Shelly 3EM Pro");     
         } 
-
-    
       }
     }
     http.end();
@@ -542,7 +539,7 @@ int getShellyType(){
 
 
 // read shelly3EM
-int getMeterData(int typ) {
+int getMeterData(int type) {
   String shelly_url;
   int power = 0;
   int power1 = 0;
@@ -553,9 +550,9 @@ int getMeterData(int typ) {
   WiFiClient client_shelly;
   HTTPClient http;
    
-  if (typ == 1) { 
+  if (type == 1) { 
     shelly_url = "http://" + shelly_ip +  "/rpc/Shelly.GetStatus"; // Shelly PRO 3EM
-  } else if(typ >= 2) {
+  } else if(type >= 2) {
     shelly_url = "http://" + shelly_ip +  "/status";  // Shelly 3EM und Andere
   } else{
     return 0;
@@ -573,24 +570,26 @@ int getMeterData(int typ) {
           DBG_PRINTLN(error.f_str());
         }
 
-        if (typ == 1) {
+       
+        if (type == 1) {
           power1 = doc["em:0"]["a_act_power"];  //Shelly 3EM PRO
           power2 = doc["em:0"]["b_act_power"];
           power3 = doc["em:0"]["c_act_power"]; 
-        } else if (typ == 2) {
-          power1 = doc["emeters"]["0"]["power"]; //Shelly 3EM
-          power2 = doc["emeters"]["1"]["power"]; 
-          power3 = doc["emeters"]["2"]["power"]; 
-        } else if (typ == 3) {
-          power1 = doc["meters"]["0"]["power"]; // Shelly EM Kanal 1
-          power2 = doc["meters"]["1"]["power"]; // Shelly EM Kanal 2
+        } else if (type == 2) {
+          power1 = doc["emeters"][0]["power"]; //Shelly 3EM
+          power2 = doc["emeters"][1]["power"]; 
+          power3 = doc["emeters"][2]["power"]; 
+        } else if (type == 3) {
+          power1 = doc["meters"][0]["power"]; // Shelly EM Kanal 1
+          power2 = doc["meters"][1]["power"]; // Shelly EM Kanal 2
           power3 = 0; 
-        } else if (typ == 4) {
-          power1 = doc["meters"]["power"]; // Shelly 1PM
+        } else if (type == 4) {
+          power1 = doc["meters"][0]["power"]; // Shelly 1PM
           power2 = 0;
           power3 = 0;   
         }
-        
+
+              
         if(!checkbox_meter_l1){
           power1 = 0;
         }
@@ -602,7 +601,6 @@ int getMeterData(int typ) {
         if(!checkbox_meter_l3){
           power3 = 0;
         }
-
 
         power = power1 + power2 + power3;
 
