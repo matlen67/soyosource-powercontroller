@@ -474,9 +474,9 @@ void disconnectClientWrapper() {
 
 
 // get shelly typ(3EM PRO, 3EM, EM, 1PM)
-int getShellyTyp(){ 
+int getShellyType(){ 
   String shelly_url = "http://" + shelly_ip +  "/shelly";
-  int typ = 0;
+  int type = 0;
 
   memset(metername, 0, sizeof(metername)); 
   strcat(metername, "no device");    
@@ -498,30 +498,34 @@ int getShellyTyp(){
           DBG_PRINTLN(error.f_str());
         }
 
-         //test auf Shelly 1PM
-        if(payload.indexOf("SHSW-PM") >= 0){
-          typ = shelly_1pm;
+
+        String json_type = doc["type"];
+        
+        //test auf Shelly 1PM
+        if(json_type.equals("SHSW-PM")){
+          type = shelly_1pm;
           memset(metername, 0, sizeof(metername)); 
           strcat(metername, "Shelly 1PM");   
-        } 
+        }
 
         //test auf Shelly EM
-        if(payload.indexOf("SHEM") >= 0 ){
-          typ = shelly_em;
+        if(json_type.equals("SHEM")){
+          type = shelly_em;
           memset(metername, 0, sizeof(metername)); 
-          strcat(metername, "Shelly EM");   
+          strcat(metername, "Shelly EM");
         }
 
         //test auf Shelly 3EM
-        if( payload.indexOf("SHEM-3") >= 0 ){
-          typ = shelly_3em;
+        if(json_type.equals("SHEM-3")){
+          type = shelly_3em;
           memset(metername, 0, sizeof(metername)); 
           strcat(metername, "Shelly 3EM");   
         }
 
+       
         //test auf Shelly 3EM Pro
-        if( payload.indexOf("SPEM") >= 0 ) {
-          typ = shelly_3em_pro;
+        if(payload.indexOf("SPEM") >= 0 ) {
+          type = shelly_3em_pro;
           memset(metername, 0, sizeof(metername)); 
           strcat(metername, "Shelly 3EM Pro");     
         } 
@@ -531,9 +535,9 @@ int getShellyTyp(){
     }
     http.end();
   }
-  DBG_PRINT("getShellyTyp() = ");
+  DBG_PRINT("getShellyType() = ");
   DBG_PRINTLN(String(metername));
-  return typ;
+  return type;
 }
 
 
@@ -1204,7 +1208,7 @@ void setup() {
     
     rssi = WiFi.RSSI();
    
-    shelly_typ = getShellyTyp(); // get shelly typ, 3em / 3empro
+    shelly_typ = getShellyType(); // get shelly typ, 3em / 3empro
 
     digitalWrite(SERIAL_COMMUNICATION_CONTROL_PIN, RS485_TX_PIN_VALUE); // RS485 Modul -> set board to transmit 
   }
@@ -1254,7 +1258,7 @@ void loop() {
     if (shelly_typ > 0){
       meter_power = getMeterData(shelly_typ);
     } else{
-      shelly_typ = getShellyTyp();
+      shelly_typ = getShellyType();
       DBG_PRINTLN("Kein Shelly erkannt! Bitte IP eintragen, speichern und ESP neu starten.");
     }
 
