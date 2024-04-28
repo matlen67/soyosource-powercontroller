@@ -8,3 +8,6 @@
   
   V1.240427.1:
   Fehlerbehebung Shelly 3EM, Shelly Plus 1PM mit zugefügt
+  
+  V1.240428.1:
+  Teiler unter 'SoyoSource Output' hinzugefügt, um die Leistung auf mehere Geräte aufzuteilen

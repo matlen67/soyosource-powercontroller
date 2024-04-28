@@ -186,7 +186,7 @@ const char index_html[] PROGMEM = R"rawliteral(
    
     .version {
       top: -40%;
-      right: -170px;
+      right: -165px;
       font-size: 40%;
       margin-top: -25px;
       margin-bottom: 10px;
@@ -200,7 +200,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
   <div class="topnav">
     <h3>SoyoSource-PowerController</h3>
-    <div class="version">v 1.240427.1</div>
+    <div class="version">v 1.240428.1</div>
   </div>
 
   <div class="content">
@@ -253,6 +253,11 @@ const char index_html[] PROGMEM = R"rawliteral(
               </table>
             </b>
           </summary>
+          <hr>
+          <div class="flexContainer">
+            <div class="flexColLeft">Teiler Output:</div>
+            <div class="flexColRight"><input type="number" min="1" max="3" id="TOUT" /></div>
+          </div>
           <hr>
           <span class="title1">Manuelle Steuerung</span>
           <div class="flexBox2">
@@ -505,6 +510,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("BATTSTATE").innerHTML      = data_start.BATTSTATE
       document.getElementById("TIMERSTATE").innerHTML     = data_start.TIMERSTATE
       document.getElementById("WIFIQUALITI").innerHTML    = data_start.WIFIQUALITI
+      document.getElementById("TOUT").value               = data_start.TOUT
       document.getElementById("METERIP").value            = data_start.METERIP
       document.getElementById("METERINTERVAL").value      = data_start.METERINTERVAL
       document.getElementById("MAXWATTINPUT").value       = data_start.MAXWATTINPUT
@@ -623,11 +629,14 @@ const char index_html[] PROGMEM = R"rawliteral(
     var batsocstop = document.getElementById("BATSOCSTOP").value;
     var batsocstart = document.getElementById("BATSOCSTART").value;
 
+    var tout = document.getElementById("TOUT").value;
+
     let text = "Save Settings!\nPress OK or Cancel.";
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "/savesettings?t1=" + timer1_time + "&w1=" + timer1_watt + "&t2=" + timer2_time + "&w2=" + timer2_watt +
      "&meteripaddr=" + meteripaddr + "&meterinterval=" + meterinterval + "&maxwatt=" + maxwatt + "&nullinterval=" + nullinterval +
-     "&nulloffset=" + nulloffset + "&mqttserver=" + mqttserver + "&mqttport=" + mqttport + "&batsocstop=" + batsocstop + "&batsocstart=" + batsocstart, true);
+     "&nulloffset=" + nulloffset + "&mqttserver=" + mqttserver + "&mqttport=" + mqttport + "&batsocstop=" + batsocstop +
+     "&batsocstart=" + batsocstart + "&tout=" + tout, true);
     xhr.send();    
   };
 

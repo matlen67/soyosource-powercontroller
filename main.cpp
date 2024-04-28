@@ -1,6 +1,6 @@
 /***************************************************************************
   soyosource-powercontroller @matlen67
-  Version: 1.240427.1
+  Version: 1.240428.1
 
   *************************
   Wiring
@@ -119,6 +119,8 @@ int soyo_text_data[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 char buffer[8];
 int old_soyo_power = 0;
 int soyo_power = 0;
+int new_soyo_power = 0;
+int teiler_output = 1;
 
 unsigned char mac[6];
 char mqtt_root[32] = "SoyoSource/";
@@ -438,6 +440,7 @@ void saveConfig(){
   json["nulloffset"] = nulloffset;
   json["batsocstop"] = batsocstop;
   json["batsocstart"] = batsocstart;
+  json["tout"] = teiler_output;
   
   File configFile = LittleFS.open("/config.json", "w");
   if (!configFile) {
@@ -863,6 +866,10 @@ void setup() {
             batsocstart = json["batsocstart"]; 
           }
 
+          if(json.containsKey("tout")){
+            teiler_output = json["tout"]; 
+          }
+
         } else {
           DBG_PRINTLN("failed to load json config");
         }
@@ -948,20 +955,21 @@ void setup() {
 
       rssi = WiFi.RSSI();
 
-      myJson["WIFIRSSI"] = rssi;
-      myJson["CLIENTID"] = clientId;
-      myJson["METERNAME"] = metername;
-      myJson["MAXWATTINPUT"] = maxwatt;
-      myJson["NULLINTERVAL"] = nullinterval;
-      myJson["NULLOFFSET"] = nulloffset;
-      myJson["METERIP"] = meteripaddr;
+      myJson["WIFIRSSI"]      = rssi;
+      myJson["CLIENTID"]      = clientId;
+      myJson["METERNAME"]     = metername;
+      myJson["MAXWATTINPUT"]  = maxwatt;
+      myJson["TOUT"]          = teiler_output;
+      myJson["NULLINTERVAL"]  = nullinterval;
+      myJson["NULLOFFSET"]    = nulloffset;
+      myJson["METERIP"]       = meteripaddr;
       myJson["METERINTERVAL"] = meterinterval;
-      myJson["TIMER1TIME"] = timer1_time;
-      myJson["TIMER1WATT"] = timer1_watt;
-      myJson["TIMER2TIME"] = timer2_time;
-      myJson["TIMER2WATT"] = timer2_watt;
-      myJson["MQTTROOT"] = mqtt_root;
-      myJson["MQTTSTATECL"] = mqtt_state; // state client: connect/disconnect
+      myJson["TIMER1TIME"]    = timer1_time;
+      myJson["TIMER1WATT"]    = timer1_watt;
+      myJson["TIMER2TIME"]    = timer2_time;
+      myJson["TIMER2WATT"]    = timer2_watt;
+      myJson["MQTTROOT"]      = mqtt_root;
+      myJson["MQTTSTATECL"]   = mqtt_state;
 
       myJson["CBNULL"] = checkbox_nulleinspeisung; //checkbox
       if(checkbox_nulleinspeisung){       // Stausanzeige
@@ -1183,6 +1191,9 @@ void setup() {
       memset(meteripaddr, 0, sizeof(meteripaddr)); 
       strcat(meteripaddr, value.c_str());
 
+      value =  request->getParam("tout")->value();
+      teiler_output = atoi(value.c_str());
+
       value =  request->getParam("meterinterval")->value();
       meterinterval = atol(value.c_str());
 
@@ -1244,15 +1255,21 @@ void loop() {
   // send current power to SoyoSource
   if ((millis() - lastTimerSoyoSource) > timerSoyoSource) {
 
-    if(checkbox_batschutz == true && output_enabled == false){ // wenn batterie soc < limit dann soyo_power =0 
+    if(checkbox_batschutz == true && output_enabled == false){ // wenn batterie soc < limit dann soyo_power = 0 
       soyo_power = 0;
     }
 
-    sendSoyoPowerData(soyo_power);
+    new_soyo_power = soyo_power / teiler_output; // Last auf mehrere Soyo's aufteilen
+    if(new_soyo_power < 0){
+      new_soyo_power = 0;
+    }
+   
+    //sendSoyoPowerData(soyo_power);
+    sendSoyoPowerData(new_soyo_power);
     
-    if(soyo_power != old_soyo_power) {  // nur für Debug, damit nur Änderungen ausgegeben werden
-      old_soyo_power = soyo_power;
-      sprintf(dbgbuffer,"new soyo_power = %i ( %02X %02X %02X %02X %02X %02X %02X %02X )",soyo_power, soyo_power_data[0],soyo_power_data[1],soyo_power_data[2],soyo_power_data[3],soyo_power_data[4],soyo_power_data[5],soyo_power_data[6],soyo_power_data[7]);
+    if(new_soyo_power != old_soyo_power) {  // nur für Debug, damit nur Laständerungen ausgegeben werden
+      old_soyo_power = new_soyo_power;
+      sprintf(dbgbuffer,"new soyo_power = %i ( %02X %02X %02X %02X %02X %02X %02X %02X )",new_soyo_power, soyo_power_data[0],soyo_power_data[1],soyo_power_data[2],soyo_power_data[3],soyo_power_data[4],soyo_power_data[5],soyo_power_data[6],soyo_power_data[7]);
       DBG_PRINTLN(dbgbuffer);
     }
 
@@ -1267,8 +1284,6 @@ void loop() {
 
   // timer to get Shelly3EM data
   if ((millis() - lastMeterinterval) > meterinterval) {
-    //DBG_PRINT("shelly_model: ");
-    //DBG_PRINTLN(shelly_model);
     if (shelly_model > 0){
       meter_power = getMeterData(shelly_model);
     } else{
