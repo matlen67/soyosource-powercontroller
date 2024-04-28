@@ -9,6 +9,20 @@ Die manuelle Steuerung über das Webinterface sowie per MQTT oder Zeitplan funkt
 
 Achtung, ich überneheme keinerlei Haftung für Schäden an Personen oder Hardware die durch dieses Projekt entstehen. Arbeiten an Spannungen größer 24V sollten nur von Fachpersonal durchgeführt werden!  
 
+## Update Verlauf
+  16.03.2024 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
+  03.04.2024 -> Statusübersicht bei geschlossenen details/summary boxen
+  14.04.2024 -> Falls Batterieschutz aktiviert, deaktiviere Regelung der Nulleinspeisung
+  25.04.2024 -> Leistungspunkt bei Nulleinspeisung festlegen
+                (Bei mir funktioniert gut Intervall Shelly 1000ms & Intervall Nulleinspeisung 4000ms)
+  26.04.2024 -> Auswahl der aktiven Leiter (L1, L2, L3) beim Shelly
+  
+  27.04.2024 -> Fehlerbehebung Shelly 3EM, Shelly Plus 1PM mit zugefügt
+  
+  V1.240428.1:
+  Teiler unter 'SoyoSource Output' hinzugefügt, um die Leistung auf mehere Geräte aufzuteilen
+  
+
 ## PlatformIO
 Dieses Projet wurde von der Ardunino IDE zu PlatformIO portiert
 
