@@ -1,0 +1,23 @@
+{
+  "name": "Uptime",
+  "keywords": "Uptime",
+  "description": "Arduino library to get the device uptime in years, months, days, hours, minutes, seconds, milliseconds, total days, and total seconds.",
+  "authors":
+  [
+    {
+      "name": "XbergCode",
+      "email": "xberg88@gmail.com",
+      "maintainer": true
+    }
+  ],
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/XbergCode/Uptime"
+  },
+  "version": "1.0.0",
+  "license": "MIT",
+  "frameworks": "arduino",
+  "platforms": "*",
+  "headers": "Uptime.h"
+}

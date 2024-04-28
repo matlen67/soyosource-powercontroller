@@ -1,0 +1,36 @@
+#######################################
+# Syntax Coloring Map For Uptime
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+Uptime		KEYWORD1
+UptimeString	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+# Uptime
+calculateUptime	KEYWORD2
+getMilliseconds	KEYWORD2
+getSeconds	KEYWORD2
+getMinutes	KEYWORD2
+getHours    	KEYWORD2
+getDays         KEYWORD2
+getMonths 	KEYWORD2
+getYears    	KEYWORD2
+getTotalDays 	KEYWORD2
+getTotalSeconds KEYWORD2
+
+# UptimeString
+getUptime1	KEYWORD2
+getUptime2	KEYWORD2
+getUptime3	KEYWORD2
+getUptime4	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
