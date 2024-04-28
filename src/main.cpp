@@ -87,10 +87,10 @@ unsigned long lastTimerSoyoSource = 0;
 unsigned long timerUptime = 1000;
 unsigned long lastTimerUptime = 0;  
 
-unsigned long meterinterval = 5000;
+unsigned long meterinterval = 2000;
 unsigned long lastMeterinterval = 0;  
 
-unsigned long nullinterval = 10000;
+unsigned long nullinterval = 5000;
 unsigned long lastNullinterval = 0;  
 
 
@@ -100,11 +100,6 @@ char mqtt_server[16] = "192.168.178.10";
 char mqtt_port[5] = "1889";
 char msgData[64];
 String msg = "";
-
-//default custom static IP
-char static_ip[16] = "192.168.178.250";
-char static_gw[16] = "192.168.178.1";
-char static_sn[16] = "255.255.255.0";
 
 String dataReceived;
 int data;
@@ -672,7 +667,7 @@ void checkTimer(){
 //#################### SETUP #######################
 void setup() {
 
-  SerialAndTelnet.setWelcomeMsg(F("Welcome to the TelnetSpy example\r\n\n"));
+  SerialAndTelnet.setWelcomeMsg(F("Welcome\r\n\n"));
   SerialAndTelnet.setCallbackOnConnect(telnetConnected);
   SerialAndTelnet.setCallbackOnDisconnect(telnetDisconnected);
   SerialAndTelnet.setFilter(char(1), F("\r\nNVT command: AO\r\n"), disconnectClientWrapper);
@@ -690,7 +685,7 @@ void setup() {
   sprintf(dbgbuffer,"ESP_%02X%02X%02X", mac[3], mac[4], mac[5]);
   DBG_PRINTLN(dbgbuffer);
   
-  configTime(MY_TZ, MY_NTP_SERVER);
+  //configTime(MY_TZ, MY_NTP_SERVER);
   
   sprintf(clientId, "soyo_%02x%02x%02x", mac[3], mac[4], mac[5] );
   
@@ -884,19 +879,17 @@ void setup() {
   WiFi.persistent(true); // sonst verliert er nach einem Neustart die IP !!!
 
   ESPAsync_WMParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
-  ESPAsync_WMParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 5); 
+  ESPAsync_WMParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6); 
 
   ESPAsync_WiFiManager wifiManager(&server, &dns);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
-  wifiManager.setConfigPortalTimeout(180);
+  wifiManager.setConfigPortalTimeout(60);
   wifiManager.addParameter(&custom_mqtt_server);
   wifiManager.addParameter(&custom_mqtt_port);
-
-  String apName = "soyo_esp_" + String(mac[3], HEX) + String(mac[4], HEX) + String(mac[5], HEX);
-
-  bool res;
-  res = wifiManager.autoConnect(apName.c_str());
-
+  configTime(MY_TZ, MY_NTP_SERVER);
+  
+  bool res = wifiManager.autoConnect(clientId);
+  
   if(!res) {
     DBG_PRINTLN("Failed to connect");
     ESP.restart();
