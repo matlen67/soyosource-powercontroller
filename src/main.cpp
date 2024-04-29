@@ -1,7 +1,7 @@
 /***************************************************************************
   soyosource-powercontroller @matlen67
 
-  Version: 1.240428.1
+  Version: 1.240429.1
 
   16.03.2024 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
   03.04.2024 -> Statusübersicht bei geschlossenen details/summary boxen
@@ -11,6 +11,7 @@
   26.04.2024 -> Auswahl der aktiven Leiter (L1, L2, L3) beim Shelly
   27.04.2024 -> Fehlerbehebung Shelly 3EM, Shelly Plus 1PM mit zugefügt
   28.04.2024 -> Teiler unter 'SoyoSource Output' hinzugefügt, um die Leistung auf mehere Geräte aufzuteilen
+  29.04.2024 -> Telnet entfernt
 
   *************************
   Wiring
@@ -36,10 +37,8 @@
 #include <Uptime.h>
 #include <time.h>
 #include "html.h"
-#include <TelnetSpy.h>
 
-TelnetSpy SerialAndTelnet;
-#define DEBUG_SERIAL SerialAndTelnet
+#define DEBUG_SERIAL Serial
 
 #define DEBUG
 
@@ -381,69 +380,64 @@ void saveConfig(){
   json["mqtt_port"] = mqtt_port;
 
   if(checkbox_mqttenabled){
-    json["mqttenabled"] = "1";
+    json["mqtt_on"] = "1";
   }else{
-    json["mqttenabled"] = "0";
+    json["mqtt_on"] = "0";
   }
 
   if(checkbox_nulleinspeisung){
-    json["nulleinspeisung"] = "1";
+    json["zft_on"] = "1";
   }else{
-    json["nulleinspeisung"] = "0";
+    json["zft_on"] = "0";
   }
 
   if(checkbox_batschutz){
-    json["batschutz"] = "1";
+    json["batp_on"] = "1";
   }else{
-    json["batschutz"] = "0";
+    json["batp_on"] = "0";
   }
 
   if(checkbox_timer1){
-    json["timer1_aktiv"] = "1";
+    json["t1_on"] = "1";
   }else{
-    json["timer1_aktiv"] = "0";
+    json["t1_on"] = "0";
   }
 
   if(checkbox_timer2){
-    json["timer2_aktiv"] = "1";
+    json["t2_on"] = "1";
   }else{
-    json["timer2_aktiv"] = "0";
+    json["t2_on"] = "0";
   }
 
   if(checkbox_meter_l1){
-    json["meter_l1_aktiv"] = "1";
+    json["mtr_l1_on"] = "1";
   }else{
-    json["meter_l1_aktiv"] = "0";
+    json["mtr_l1_on"] = "0";
   }
 
    if(checkbox_meter_l2){
-    json["meter_l2_aktiv"] = "1";
+    json["mtr_l2_on"] = "1";
   }else{
-    json["meter_l2_aktiv"] = "0";
+    json["mtr_l2_on"] = "0";
   }
 
    if(checkbox_meter_l3){
-    json["meter_l3_aktiv"] = "1";
+    json["mtr_l3_on"] = "1";
   }else{
-    json["meter_l3_aktiv"] = "0";
+    json["mtr_l3_on"] = "0";
   }
 
-
-
-  json["ip"] = WiFi.localIP().toString();
-  json["gateway"] = WiFi.gatewayIP().toString();
-  json["subnet"] = WiFi.subnetMask().toString();
-  json["timer1_time"] = timer1_time;
-  json["timer1_watt"] = timer1_watt;
-  json["timer2_time"] = timer2_time;
-  json["timer2_watt"] = timer2_watt;
-  json["maxwatt"] = maxwatt;
-  json["meteripaddr"] = meteripaddr;
-  json["meterinterval"] = meterinterval;
-  json["nullinterval"] = nullinterval;
-  json["nulloffset"] = nulloffset;
-  json["batsocstop"] = batsocstop;
-  json["batsocstart"] = batsocstart;
+  json["t1_t"] = timer1_time;
+  json["t1_p"] = timer1_watt;
+  json["t2_t"] = timer2_time;
+  json["t2_p"] = timer2_watt;
+  json["mp"] = maxwatt;
+  json["mtr_ip"] = meteripaddr;
+  json["mtr_iv"] = meterinterval;
+  json["z_iv"] = nullinterval;
+  json["z_ofs"] = nulloffset;
+  json["soc_stop"] = batsocstop;
+  json["soc_start"] = batsocstart;
   json["tout"] = teiler_output;
   
   File configFile = LittleFS.open("/config.json", "w");
@@ -457,21 +451,6 @@ void saveConfig(){
 
   serializeJson(json, Serial);
   DBG_PRINTLN();
-}
-
-
-void telnetConnected() {
-  DBG_PRINTLN(F("Telnet connection established."));
-}
-
-
-void telnetDisconnected() {
-  DBG_PRINTLN(F("Telnet connection closed."));
-}
-
-
-void disconnectClientWrapper() {
-  SerialAndTelnet.disconnectClient();
 }
 
 
@@ -676,13 +655,8 @@ void checkTimer(){
 //#################### SETUP #######################
 void setup() {
 
-  SerialAndTelnet.setWelcomeMsg(F("Welcome\r\n\n"));
-  SerialAndTelnet.setCallbackOnConnect(telnetConnected);
-  SerialAndTelnet.setCallbackOnDisconnect(telnetDisconnected);
-  SerialAndTelnet.setFilter(char(1), F("\r\nNVT command: AO\r\n"), disconnectClientWrapper);
-
   DEBUG_SERIAL.begin(115200);
-  delay(250);
+  delay(500);
 
   DBG_PRINTLN("");
   DBG_PRINT(F("CPU Frequency = "));
@@ -736,9 +710,8 @@ void setup() {
 
           char key_value[2];
 
-          if(json.containsKey("mqttenabled")){
-            //char json_mqttstate[2];
-            strcpy(key_value, json["mqttenabled"]);
+          if(json.containsKey("mqtt_on")){
+            strcpy(key_value, json["mqtt_on"]);
             if(strcmp(key_value, "1") == 0){
               checkbox_mqttenabled = true;
             }else{
@@ -746,9 +719,8 @@ void setup() {
             }
           }
 
-          if(json.containsKey("nulleinspeisung")){
-            //char json_nullstate[2];
-            strcpy(key_value, json["nulleinspeisung"]);
+          if(json.containsKey("zft_on")){
+            strcpy(key_value, json["zft_on"]);
 
             if(strcmp(key_value, "1") == 0){
               checkbox_nulleinspeisung = true;
@@ -757,9 +729,8 @@ void setup() {
             }
           }
 
-          if(json.containsKey("batschutz")){
-            //char json_batschutzstate[2];
-            strcpy(key_value, json["batschutz"]);
+          if(json.containsKey("batp_on")){
+            strcpy(key_value, json["batp_on"]);
 
             if(strcmp(key_value, "1") == 0){
               checkbox_batschutz = true;
@@ -768,9 +739,8 @@ void setup() {
             }
           }
 
-          if(json.containsKey("timer1_aktiv")){
-            //char json_timer1_aktiv[2];
-            strcpy(key_value, json["timer1_aktiv"]);
+          if(json.containsKey("t1_on")){
+            strcpy(key_value, json["t1_on"]);
 
             if(strcmp(key_value, "1") == 0){
               checkbox_timer1 = true;
@@ -779,9 +749,8 @@ void setup() {
             }
           }
 
-          if(json.containsKey("timer2_aktiv")){
-            //char json_timer2_aktiv[2];
-            strcpy(key_value, json["timer2_aktiv"]);
+          if(json.containsKey("t2_on")){
+            strcpy(key_value, json["t2_on"]);
 
             if(strcmp(key_value, "1") == 0){
               checkbox_timer2 = true;
@@ -790,10 +759,8 @@ void setup() {
             }
           }
 
-          //meter_l1_aktiv
-          if(json.containsKey("meter_l1_aktiv")){
-            //char json_meter_l1_aktiv[2];
-            strcpy(key_value, json["meter_l1_aktiv"]);
+          if(json.containsKey("mtr_l1_on")){
+            strcpy(key_value, json["mtr_l1_on"]);
 
             if(strcmp(key_value, "1") == 0){
               checkbox_meter_l1 = true;
@@ -802,9 +769,8 @@ void setup() {
             }
           }
 
-          if(json.containsKey("meter_l2_aktiv")){
-            //char json_meter_l2_aktiv[2];
-            strcpy(key_value, json["meter_l2_aktiv"]);
+          if(json.containsKey("mtr_l2_on")){
+            strcpy(key_value, json["mtr_l2_on"]);
 
             if(strcmp(key_value, "1") == 0){
               checkbox_meter_l2 = true;
@@ -813,9 +779,8 @@ void setup() {
             }
           }
 
-          if(json.containsKey("meter_l3_aktiv")){
-            //char json_meter_l3_aktiv[2];
-            strcpy(key_value, json["meter_l3_aktiv"]);
+          if(json.containsKey("mtr_l3_on")){
+            strcpy(key_value, json["mtr_l3_on"]);
 
             if(strcmp(key_value, "1") == 0){
               checkbox_meter_l3 = true;
@@ -825,49 +790,49 @@ void setup() {
           }
 
 
-          if(json.containsKey("timer1_time")){
-            strcpy(timer1_time, json["timer1_time"]);            
+          if(json.containsKey("t1_t")){
+            strcpy(timer1_time, json["t1_t"]);            
           }
 
-          if(json.containsKey("timer2_time")){
-            strcpy(timer2_time, json["timer2_time"]);
+          if(json.containsKey("t2_t")){
+            strcpy(timer2_time, json["t2_t"]);
           }
 
-          if(json.containsKey("timer1_watt")){
-            timer1_watt = json["timer1_watt"];
+          if(json.containsKey("t1_p")){
+            timer1_watt = json["t1_p"];
           }
 
-          if(json.containsKey("timer2_watt")){
-            timer2_watt = json["timer2_watt"];  
+          if(json.containsKey("t2_p")){
+            timer2_watt = json["t2_p"];  
           }
 
-          if(json.containsKey("maxwatt")){
-            maxwatt = json["maxwatt"];  
+          if(json.containsKey("mp")){
+            maxwatt = json["mp"];  
           }
 
-          if(json.containsKey("meteripaddr")){
-            strcpy(meteripaddr, json["meteripaddr"]);  
+          if(json.containsKey("mtr_ip")){
+            strcpy(meteripaddr, json["mtr_ip"]);  
             shelly_ip = String(meteripaddr);
           }
 
-          if(json.containsKey("meterinterval")){
-            meterinterval = json["meterinterval"]; 
+          if(json.containsKey("mtr_iv")){
+            meterinterval = json["mtr_iv"]; 
           }
 
-          if(json.containsKey("nullinterval")){
-            nullinterval = json["nullinterval"]; 
+          if(json.containsKey("z_iv")){
+            nullinterval = json["z_iv"]; 
           }
 
-          if(json.containsKey("nulloffset")){
-            nulloffset = json["nulloffset"]; 
+          if(json.containsKey("z_ofs")){
+            nulloffset = json["z_ofs"]; 
           }
 
-          if(json.containsKey("batsocstop")){
-            batsocstop = json["batsocstop"]; 
+          if(json.containsKey("soc_stop")){
+            batsocstop = json["soc_stop"]; 
           }
 
-          if(json.containsKey("batsocstart")){
-            batsocstart = json["batsocstart"]; 
+          if(json.containsKey("soc_start")){
+            batsocstart = json["soc_start"]; 
           }
 
           if(json.containsKey("tout")){
@@ -1243,7 +1208,6 @@ void setup() {
 
 
 void loop() {
-  SerialAndTelnet.handle();
   
   if(checkbox_mqttenabled){
     if (!client.connected()) {
