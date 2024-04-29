@@ -19,6 +19,7 @@
   NodeMCU D4 - RS485 DI
 
 ****************************************************************************/
+
 #include <Arduino.h> 
 #include <LittleFS.h>
 #include <SoftwareSerial.h>
@@ -37,10 +38,8 @@
 #include "html.h"
 #include <TelnetSpy.h>
 
-
 TelnetSpy SerialAndTelnet;
 #define DEBUG_SERIAL SerialAndTelnet
-
 
 #define DEBUG
 
@@ -186,8 +185,8 @@ int meterl2 = 0;
 int meterl3 = 0;
 
 //batterieüberwachung
-int batsocstop = 20;
-int batsocstart = 80;
+int batsocstop = 15;
+int batsocstart = 50;
 bool output_enabled = true;
 
 
