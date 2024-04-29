@@ -37,7 +37,7 @@ durch
 
 ersetzen
 
-###Wer platformio nutzt brauch das % nicht ändern, da ist es in der platformi.ini als build flag hinterlegt
+### Wer platformio nutzt brauch das % nicht ändern, da ist es in der platformi.ini als build flag hinterlegt
 
 
 
