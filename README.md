@@ -24,7 +24,7 @@ Wer dieses Projekt weiterhin mit der Arduino IDE nutzen möchte muss die Datei m
  - Uptime               (https://github.com/XbergCode/Uptime)
 
 
-#### Hinweis ESPAsyncWebServer (Arduino IDE & PlatformIO)
+#### Hinweis ESPAsyncWebServer bei verwendung der Arduino IDE 
 Innerhalb der Library ist das Prozentzeichen '%' als Platzhalter definiert. Variablen die vom Platzhalter umschlossen sind können so später durch gesendeten Code vom Webserver ersetzt werden um z.B. Daten von Sensoren dazustellen. Leider interpretiert der Webserver aber auch das Prozentzeichen in CSS oder HTML Code falsch, so das 
 z.B. bei der Angabe des property's wie xyz{ widht: 90%; } das % Zeichen entfernt wird. Dieses führt folglich zu Fehldarstellungen der Website. Als Workaround hilft Angaben mit Prozentzeichen immer doppelt anzugeben xyz{ width:90%%; } oder man ersetzt in der Library das Platzhalter Zeichen.
 Ich habe in meiner Library unter dem Library-Ordner ESP Async WebServer/src die Datei 'WebResponseImpl.h' angepasst und den Platzhalter ersetzt:
@@ -36,6 +36,8 @@ durch
 #define TEMPLATE_PLACEHOLDER '~'
 
 ersetzen
+
+###Wer platformio nutzt brauch das % nicht ändern, da ist es in der platformi.ini als build flag hinterlegt
 
 
 
