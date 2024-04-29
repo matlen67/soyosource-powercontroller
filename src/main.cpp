@@ -1,6 +1,16 @@
 /***************************************************************************
   soyosource-powercontroller @matlen67
+
   Version: 1.240428.1
+
+  16.03.2024 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
+  03.04.2024 -> Statusübersicht bei geschlossenen details/summary boxen
+  14.04.2024 -> Falls Batterieschutz aktiviert, deaktiviere Regelung der Nulleinspeisung
+  25.04.2024 -> Leistungspunkt bei Nulleinspeisung festlegen
+                (Bei mir funktioniert gut Intervall Shelly 1000ms & Intervall Nulleinspeisung 4000ms)
+  26.04.2024 -> Auswahl der aktiven Leiter (L1, L2, L3) beim Shelly
+  27.04.2024 -> Fehlerbehebung Shelly 3EM, Shelly Plus 1PM mit zugefügt
+  28.04.2024 -> Teiler unter 'SoyoSource Output' hinzugefügt, um die Leistung auf mehere Geräte aufzuteilen
 
   *************************
   Wiring
