@@ -129,7 +129,7 @@ int teiler_output = 1;
 
 unsigned char mac[6];
 char mqtt_root[32] = "SoyoSource/";
-char clientId[12];
+char clientId[16];
 char topic_power[40];
 char soyo_text[40];
 
@@ -836,6 +836,7 @@ void setup() {
   DBG_PRINTLN(F(" MHz"));
   
   WiFi.macAddress(mac);
+  WiFi.persistent(true); // sonst verliert er nach einem Neustart die IP !!!
   
   sprintf(dbgbuffer,"ESP_%02X%02X%02X", mac[3], mac[4], mac[5]);
   DBG_PRINTLN(dbgbuffer);
@@ -857,175 +858,7 @@ void setup() {
 
   readConfig();
 
-  // //read configuration from json
-  // DBG_PRINTLN("mounting FS...");
-
-  // if (LittleFS.begin()) {
-  //   DBG_PRINTLN("mounted file system");
-  //   if (LittleFS.exists("/config.json")) {
-  //     //file exists, reading and loading
-  //     DBG_PRINTLN("reading config file");
-  //     File configFile = LittleFS.open("/config.json", "r");
-  //     if (configFile) {
-  //       DBG_PRINTLN("opened config file");
-  //       size_t size = configFile.size();
-  //       // Allocate a buffer to store contents of the file.
-  //       std::unique_ptr<char[]> buf(new char[size]);
-
-  //       configFile.readBytes(buf.get(), size);
-
-  //       DynamicJsonDocument json(1024);
-  //       auto deserializeError = deserializeJson(json, buf.get());
-  //       serializeJson(json, Serial);
-  //       if (!deserializeError) {
-  //         DBG_PRINTLN("\nparsed json");
-  //         strcpy(mqtt_server, json["mqtt_server"]);
-  //         strcpy(mqtt_port, json["mqtt_port"]);
-
-  //         char key_value[2];
-
-  //         if(json.containsKey("mqtt_on")){
-  //           strcpy(key_value, json["mqtt_on"]);
-  //           if(strcmp(key_value, "1") == 0){
-  //             checkbox_mqttenabled = true;
-  //           }else{
-  //             checkbox_mqttenabled = false;
-  //           }
-  //         }
-
-  //         if(json.containsKey("zft_on")){
-  //           strcpy(key_value, json["zft_on"]);
-
-  //           if(strcmp(key_value, "1") == 0){
-  //             checkbox_nulleinspeisung = true;
-  //           }else{
-  //             checkbox_nulleinspeisung = false;
-  //           }
-  //         }
-
-  //         if(json.containsKey("batp_on")){
-  //           strcpy(key_value, json["batp_on"]);
-
-  //           if(strcmp(key_value, "1") == 0){
-  //             checkbox_batschutz = true;
-  //           }else{
-  //             checkbox_batschutz = false;
-  //           }
-  //         }
-
-  //         if(json.containsKey("t1_on")){
-  //           strcpy(key_value, json["t1_on"]);
-
-  //           if(strcmp(key_value, "1") == 0){
-  //             checkbox_timer1 = true;
-  //           }else{
-  //             checkbox_timer1 = false;
-  //           }
-  //         }
-
-  //         if(json.containsKey("t2_on")){
-  //           strcpy(key_value, json["t2_on"]);
-
-  //           if(strcmp(key_value, "1") == 0){
-  //             checkbox_timer2 = true;
-  //           }else{
-  //             checkbox_timer2 = false;
-  //           }
-  //         }
-
-  //         if(json.containsKey("mtr_l1_on")){
-  //           strcpy(key_value, json["mtr_l1_on"]);
-
-  //           if(strcmp(key_value, "1") == 0){
-  //             checkbox_meter_l1 = true;
-  //           }else{
-  //             checkbox_meter_l1 = false;
-  //           }
-  //         }
-
-  //         if(json.containsKey("mtr_l2_on")){
-  //           strcpy(key_value, json["mtr_l2_on"]);
-
-  //           if(strcmp(key_value, "1") == 0){
-  //             checkbox_meter_l2 = true;
-  //           }else{
-  //             checkbox_meter_l2 = false;
-  //           }
-  //         }
-
-  //         if(json.containsKey("mtr_l3_on")){
-  //           strcpy(key_value, json["mtr_l3_on"]);
-
-  //           if(strcmp(key_value, "1") == 0){
-  //             checkbox_meter_l3 = true;
-  //           }else{
-  //             checkbox_meter_l3 = false;
-  //           }
-  //         }
-
-
-  //         if(json.containsKey("t1_t")){
-  //           strcpy(timer1_time, json["t1_t"]);            
-  //         }
-
-  //         if(json.containsKey("t2_t")){
-  //           strcpy(timer2_time, json["t2_t"]);
-  //         }
-
-  //         if(json.containsKey("t1_p")){
-  //           timer1_watt = json["t1_p"];
-  //         }
-
-  //         if(json.containsKey("t2_p")){
-  //           timer2_watt = json["t2_p"];  
-  //         }
-
-  //         if(json.containsKey("mp")){
-  //           maxwatt = json["mp"];  
-  //         }
-
-  //         if(json.containsKey("mtr_ip")){
-  //           strcpy(meteripaddr, json["mtr_ip"]);  
-  //           shelly_ip = String(meteripaddr);
-  //         }
-
-  //         if(json.containsKey("mtr_iv")){
-  //           meterinterval = json["mtr_iv"]; 
-  //         }
-
-  //         if(json.containsKey("z_iv")){
-  //           nullinterval = json["z_iv"]; 
-  //         }
-
-  //         if(json.containsKey("z_ofs")){
-  //           nulloffset = json["z_ofs"]; 
-  //         }
-
-  //         if(json.containsKey("soc_stop")){
-  //           batsocstop = json["soc_stop"]; 
-  //         }
-
-  //         if(json.containsKey("soc_start")){
-  //           batsocstart = json["soc_start"]; 
-  //         }
-
-  //         if(json.containsKey("tout")){
-  //           teiler_output = json["tout"]; 
-  //         }
-
-  //       } else {
-  //         DBG_PRINTLN("failed to load json config");
-  //       }
-  //     }
-  //   }
-  // } else {
-  //   DBG_PRINTLN("failed to mount FS");
-  // }
-  // //end read config data
-
   
-  WiFi.persistent(true); // sonst verliert er nach einem Neustart die IP !!!
-
   ESPAsync_WMParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
   ESPAsync_WMParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6); 
 
