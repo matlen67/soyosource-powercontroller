@@ -1,7 +1,7 @@
 /***************************************************************************
   soyosource-powercontroller @matlen67
 
-  Version: 1.240429.1
+  Version: 1.240505
 
   16.03.2024 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
   03.04.2024 -> Statusübersicht bei geschlossenen details/summary boxen
@@ -12,6 +12,8 @@
   27.04.2024 -> Fehlerbehebung Shelly 3EM, Shelly Plus 1PM mit zugefügt
   28.04.2024 -> Teiler unter 'SoyoSource Output' hinzugefügt, um die Leistung auf mehere Geräte aufzuteilen
   29.04.2024 -> Telnet entfernt
+  05.05.2024 -> update ArduinoJson to 7.0.4
+
 
   *************************
   Wiring
@@ -390,7 +392,7 @@ void readConfig(){
 
         configFile.readBytes(buf.get(), size);
 
-        DynamicJsonDocument json(1024);
+        JsonDocument json;
         auto deserializeError = deserializeJson(json, buf.get());
         serializeJson(json, Serial);
         if (!deserializeError) {
@@ -544,7 +546,7 @@ void readConfig(){
 // write config.json
 void saveConfig(){
   DBG_PRINTLN(F("save data to config.json"));
-  DynamicJsonDocument json(1024);
+  JsonDocument json;
  
   json["mqtt_server"] = mqtt_server;
   json["mqtt_port"] = mqtt_port;
@@ -632,7 +634,7 @@ int getShellyType(){
   memset(metername, 0, sizeof(metername)); 
   strcat(metername, "no device");    
    
-  DynamicJsonDocument doc(2048);
+  JsonDocument doc;
  
   WiFiClient client_shelly;
   HTTPClient http;
@@ -712,7 +714,7 @@ int getMeterData(int type) {
   int power2 = 0;
   int power3 = 0; 
   
-  DynamicJsonDocument doc(2048);
+  JsonDocument doc;
   WiFiClient client_shelly;
   HTTPClient http;
    
@@ -1089,7 +1091,7 @@ void setup() {
 
     // crate json and fetch data
     server.on("/json", HTTP_GET, [] (AsyncWebServerRequest *request){
-      DynamicJsonDocument myJson(1024);
+      JsonDocument myJson;
       String message = "";
 
       rssi = WiFi.RSSI();
