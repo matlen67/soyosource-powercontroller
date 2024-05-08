@@ -1,7 +1,7 @@
 /***************************************************************************
   soyosource-powercontroller @matlen67
 
-  Version: 1.240505
+  Version: 1.240508
 
   16.03.2024 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
   03.04.2024 -> Statusübersicht bei geschlossenen details/summary boxen
@@ -13,6 +13,7 @@
   28.04.2024 -> Teiler unter 'SoyoSource Output' hinzugefügt, um die Leistung auf mehere Geräte aufzuteilen
   29.04.2024 -> Telnet entfernt
   05.05.2024 -> update ArduinoJson to 7.0.4
+  08.05.2024 -> mqtt topic voltage & soc bearbeitbar 
 
 
   *************************
@@ -110,6 +111,8 @@ char mqtt_server[16] = "192.168.178.10";
 char mqtt_port[5] = "1889";
 char msgData[64];
 String msg = "";
+char mqtt_topic_bat_voltage [48] = "VenusOS/SmartShunt/voltage";
+char mqtt_topic_bat_soc [48] = "VenusOS/SmartShunt/soc";
 
 String dataReceived;
 int data;
@@ -282,12 +285,12 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
     }
   }
 
-  if(strcmp(topic, "VenusOS/SmartShunt/soc") == 0){
+  if(strcmp(topic, mqtt_topic_bat_soc) == 0){
     float arrived_value_f = atof(buffer);
     mqtt_bat_soc = arrived_value_f;
   }
 
-  if(strcmp(topic, "VenusOS/SmartShunt/voltage") == 0){
+  if(strcmp(topic, mqtt_topic_bat_voltage) == 0){
     float arrived_value_f = atof(buffer);
     mqtt_bat_voltage = arrived_value_f;
   }
@@ -317,8 +320,8 @@ void reconnect() {
 
       client.publish(topic_power, "0"); 
       client.subscribe(topic_power);
-      client.subscribe("VenusOS/SmartShunt/soc");
-      client.subscribe("VenusOS/SmartShunt/voltage");
+      client.subscribe(mqtt_topic_bat_soc);
+      client.subscribe(mqtt_topic_bat_voltage);
 
       strcpy(mqtt_state, "connect");
 
@@ -327,19 +330,17 @@ void reconnect() {
       DBG_PRINTLN("");
 
       DBG_PRINT("subscrible: ");
-      DBG_PRINT("VenusOS/SmartShunt/soc");
+      DBG_PRINT(mqtt_topic_bat_soc);
       DBG_PRINTLN("");
 
       DBG_PRINT("subscrible: ");
-      DBG_PRINT("VenusOS/SmartShunt/voltage");
+      DBG_PRINT(mqtt_topic_bat_voltage);
       DBG_PRINTLN("");
-
 
     } else {
       DBG_PRINTLN("reconnect failed! ");
       strcpy(mqtt_state, "connect error");
       
-      //give a litle time to connect
       while (timeout){
         DBG_PRINT(".");
         timeout--;
@@ -399,6 +400,14 @@ void readConfig(){
           DBG_PRINTLN("\nparsed json");
           strcpy(mqtt_server, json["mqtt_server"]);
           strcpy(mqtt_port, json["mqtt_port"]);
+
+          if(json.containsKey("mqtt_bat_vol")){
+            strcpy(mqtt_topic_bat_voltage, json["mqtt_bat_vol"]);
+          }
+
+          if(json.containsKey("mqtt_bat_soc")){
+            strcpy(mqtt_topic_bat_soc, json["mqtt_bat_soc"]);
+          }
 
           char key_value[2];
 
@@ -550,6 +559,9 @@ void saveConfig(){
  
   json["mqtt_server"] = mqtt_server;
   json["mqtt_port"] = mqtt_port;
+  json["mqtt_bat_vol"] = mqtt_topic_bat_voltage;
+  json["mqtt_bat_soc"] = mqtt_topic_bat_soc;
+
 
   if(checkbox_mqttenabled){
     json["mqtt_on"] = "1";
@@ -980,6 +992,9 @@ void setup() {
 
       myJson["MQTTSERVER"] = mqtt_server;
       myJson["MQTTPORT"] = mqtt_port;
+      myJson["MQTTBATVOL"] = mqtt_topic_bat_voltage;
+      myJson["MQTTBATSOC"] = mqtt_topic_bat_soc;
+      
       myJson["UPTIME"] = uptime_str;
       myJson["SOYOPOWER"] = soyo_power;
       myJson["METERNAME"] = metername;
@@ -1185,6 +1200,14 @@ void setup() {
       memset(mqtt_port, 0, sizeof(mqtt_port)); 
       strcat(mqtt_port, value.c_str());
 
+      value =  request->getParam("mqttbatvol")->value();
+      memset(mqtt_topic_bat_voltage, 0, sizeof(mqtt_topic_bat_voltage)); 
+      strcat(mqtt_topic_bat_voltage, value.c_str());
+
+      value =  request->getParam("mqttbatsoc")->value();
+      memset(mqtt_topic_bat_soc, 0, sizeof(mqtt_topic_bat_soc)); 
+      strcat(mqtt_topic_bat_soc, value.c_str());
+      
       value =  request->getParam("batsocstop")->value();
       batsocstop = atoi(value.c_str());
 

@@ -200,7 +200,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
   <div class="topnav">
     <h3>SoyoSource-PowerController</h3>
-    <div class="version">v 1.240505</div>
+    <div class="version">v 1.240508</div>
   </div>
 
   <div class="content">
@@ -398,11 +398,11 @@ const char index_html[] PROGMEM = R"rawliteral(
           </div>
           <br>
           <div class="flexContainer">
-            <div class="flexColLeft"><span>VenusOS/SmartShunt/voltage</span></div>
+            <div class="flexColLeft"><input type="text" size="28" id="MQTTBATVOL"></div>
             <div class="flexColRight" id="MQTT_BAT_V">999</div>
           </div>
           <div class="flexContainer">
-            <div class="flexColLeft"><span>VenusOS/SmartShunt/soc</span></div>
+            <div class="flexColLeft"><input type="text" size="28" id="MQTTBATSOC"></div>
             <div class="flexColRight" id="MQTT_BAT_SOC">999</div>
           </div>         
         </details>
@@ -510,6 +510,8 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("BATTSTATE").innerHTML      = data_start.BATTSTATE
       document.getElementById("TIMERSTATE").innerHTML     = data_start.TIMERSTATE
       document.getElementById("WIFIQUALITI").innerHTML    = data_start.WIFIQUALITI
+      document.getElementById("MQTTBATVOL").value         = data_start.MQTTBATVOL
+      document.getElementById("MQTTBATSOC").value         = data_start.MQTTBATSOC
       document.getElementById("TOUT").value               = data_start.TOUT
       document.getElementById("METERIP").value            = data_start.METERIP
       document.getElementById("METERINTERVAL").value      = data_start.METERINTERVAL
@@ -625,6 +627,8 @@ const char index_html[] PROGMEM = R"rawliteral(
 
     var mqttserver = document.getElementById("MQTTSERVER").value;
     var mqttport = document.getElementById("MQTTPORT").value;
+    var mqttbatvol = document.getElementById("MQTTBATVOL").value;
+    var mqttbatsoc = document.getElementById("MQTTBATSOC").value;
 
     var batsocstop = document.getElementById("BATSOCSTOP").value;
     var batsocstart = document.getElementById("BATSOCSTART").value;
@@ -635,8 +639,8 @@ const char index_html[] PROGMEM = R"rawliteral(
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "/savesettings?t1=" + timer1_time + "&w1=" + timer1_watt + "&t2=" + timer2_time + "&w2=" + timer2_watt +
      "&meteripaddr=" + meteripaddr + "&meterinterval=" + meterinterval + "&maxwatt=" + maxwatt + "&nullinterval=" + nullinterval +
-     "&nulloffset=" + nulloffset + "&mqttserver=" + mqttserver + "&mqttport=" + mqttport + "&batsocstop=" + batsocstop +
-     "&batsocstart=" + batsocstart + "&tout=" + tout, true);
+     "&nulloffset=" + nulloffset + "&mqttserver=" + mqttserver + "&mqttport=" + mqttport + "&mqttbatvol=" + mqttbatvol + 
+     "&mqttbatsoc=" + mqttbatsoc + "&batsocstop=" + batsocstop + "&batsocstart=" + batsocstart + "&tout=" + tout, true);
     xhr.send();    
   };
 
