@@ -200,7 +200,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
   <div class="topnav">
     <h3>SoyoSource-PowerController</h3>
-    <div class="version">v 1.240508</div>
+    <div class="version">v 1.240521</div>
   </div>
 
   <div class="content">
@@ -337,7 +337,7 @@ const char index_html[] PROGMEM = R"rawliteral(
           <hr>
           <div class="flexContainer">
             <div class="flexColLeft">Max Output [W]:</div>
-            <div class="flexColRight"><input type="number" min="0" max="2000" id="MAXWATTINPUT"/></div>
+            <div class="flexColRight"><input type="number" min="0" max="5000" id="MAXWATTINPUT"/></div>
           </div>
           <div class="flexContainer">
             <div class="flexColLeft">Nullpunkt-Offset [W]:</div>
@@ -622,6 +622,11 @@ const char index_html[] PROGMEM = R"rawliteral(
     var meteripaddr = document.getElementById("METERIP").value;
     var meterinterval = document.getElementById("METERINTERVAL").value;
     var maxwatt = document.getElementById("MAXWATTINPUT").value;
+    if (maxwatt < 0){
+      maxwatt = 0
+    } else if( maxwatt > 5000) {
+      maxwatt = 5000
+    }
     var nullinterval = document.getElementById("NULLINTERVAL").value;
     var nulloffset = document.getElementById("NULLOFFSET").value;
 
