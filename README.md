@@ -57,9 +57,12 @@ Hinweis: Das RS485 Entwicklungsboard verwendet einen MAX485 Pegelwandler der fü
 Hier muss 'Bat AutoLimit Grid' auf Y stehen
 
 <img src="https://github.com/matlen67/soyosource-powercontroller/blob/main/image/display_setup.jpg" width="256">
-  
+ 
 
 ## Webif
 <img src="https://github.com/matlen67/soyosource-powercontroller/blob/main/image/webif_240426_1020.png" width="512"> 
 
 
+### Bild 3: Addition of Homewizard
+<img src="https://github.com/krulkip/soyosource-powercontroller/blob/main//SoyoSource.jpg" width="512">
+ 

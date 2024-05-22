@@ -1,7 +1,7 @@
 /***************************************************************************
   soyosource-powercontroller @matlen67
 
-  Version: 1.240508
+  Version: 1.240508BK
 
   16.03.2024 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
   03.04.2024 -> Statusübersicht bei geschlossenen details/summary boxen
@@ -59,6 +59,9 @@
 // DBG_PRINTLN(dbgbuffer);
 //*****************************************************************************
 char dbgbuffer[128]; 
+#define D1 5
+#define D3 0
+#define D4 2
 
 #define RXPin        D1  // Serial Receive pin (D1)
 #define TXPin        D4  // Serial Transmit pin (D4)
@@ -72,6 +75,11 @@ char dbgbuffer[128];
 #define MY_NTP_SERVER "de.pool.ntp.org"           
 #define MY_TZ "CET-1CEST,M3.5.0/2,M10.5.0/3"   
 
+//IMPORTANT: Uncomment this line if you want to enable SHELLY:
+#define ENABLE_HOMEWIZARD
+#ifndef ENABLE_HOMEWIZARD
+#define SHELLY
+#endif
 
 SoftwareSerial RS485Serial(RXPin, TXPin); // RX, TX
 WiFiClient espClient;
@@ -107,7 +115,7 @@ unsigned long lastNullinterval = 0;
 
 
 //mqtt
-char mqtt_server[16] = "192.168.178.10";
+char mqtt_server[16] = "192.168.178.30";
 char mqtt_port[5] = "1889";
 char msgData[64];
 String msg = "";
@@ -176,9 +184,10 @@ const int shelly_3em = 10;      // ip/status
 const int shelly_em = 11;       // ip/status
 const int shelly_1pm = 12;      // ip/status
 
+const int homewizard = 20;      // ip/api/v1/data
 
-String shelly_ip = "";
-int shelly_model = 0 ; 
+String meter_ip = "";
+int meter_model = 0 ; 
 
 //nulleinspeisung
 int nulloffset = 0;
@@ -513,7 +522,7 @@ void readConfig(){
 
           if(json.containsKey("mtr_ip")){
             strcpy(meteripaddr, json["mtr_ip"]);  
-            shelly_ip = String(meteripaddr);
+            meter_ip = String(meteripaddr);
           }
 
           if(json.containsKey("mtr_iv")){
@@ -638,9 +647,14 @@ void saveConfig(){
 }
 
 
-// get shelly type(3EM PRO, 3EM, EM, 1PM, Plus 1PM)
-int getShellyType(){ 
-  String shelly_url = "http://" + shelly_ip +  "/shelly";
+// get meter type(3EM PRO, 3EM, EM, 1PM, Plus 1PM, Homewizard)
+int getMeterType(){ 
+#ifdef ENABLE_SHELLY  
+  String meter_url = "http://" + meter_ip +  "/shelly";
+#endif
+#ifdef ENABLE_HOMEWIZARD
+  String meter_url = "http://" + meter_ip +  "/api";
+#endif
   int type = 0;
 
   memset(metername, 0, sizeof(metername)); 
@@ -648,14 +662,16 @@ int getShellyType(){
    
   JsonDocument doc;
  
-  WiFiClient client_shelly;
+  WiFiClient client_meter;
   HTTPClient http;
 
-  if (http.begin(client_shelly, shelly_url)) { 
+  if (http.begin(client_meter, meter_url)) { 
     int httpCode = http.GET();
+
     if (httpCode > 0) {
       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
         String payload = http.getString();   
+
         DeserializationError error = deserializeJson(doc, payload);
         
         if (error) {
@@ -665,7 +681,7 @@ int getShellyType(){
 
         String json_type = doc["type"];
         String json_model = doc["model"];
-
+        String json_product_name = doc["product_name"];
         if(json_type != NULL){
 
           //test auf Shelly 1PM
@@ -707,38 +723,49 @@ int getShellyType(){
           } 
         }
 
+        if(json_product_name != NULL){
+          //test auf Homewizard
+          if(json_product_name.equals("P1 meter")) {
+            type = homewizard;
+            DBG_PRINTLN(type);
+            memset(metername, 0, sizeof(metername)); 
+            strcat(metername, "Homewizard");     
+          } 
+        }
       }
     }
     http.end();
   }
-  DBG_PRINT("getShellyType() = ");
+  DBG_PRINT("getMeterType() = ");
   DBG_PRINTLN(String(metername));
 
   return type;
 }
 
 
-// read shelly3EM
+// read meter
 int getMeterData(int type) {
-  String shelly_url;
+  String meter_url;
   int power = 0;
   int power1 = 0;
   int power2 = 0;
   int power3 = 0; 
   
   JsonDocument doc;
-  WiFiClient client_shelly;
+  WiFiClient client_meter;
   HTTPClient http;
    
   if (type > 0 && type < 10) { 
-    shelly_url = "http://" + shelly_ip +  "/rpc/Shelly.GetStatus"; // Shelly PRO 3EM
-  } else if(type >= 10) {
-    shelly_url = "http://" + shelly_ip +  "/status";  // Shelly 3EM und Andere
-  } else{
+    meter_url = "http://" + meter_ip +  "/rpc/Shelly.GetStatus"; // Shelly PRO 3EM
+  } else if(type >= 10 && type < 15) {
+    meter_url = "http://" + meter_ip +  "/status";  // Shelly 3EM und Andere
+  } else if (type  >=16) {
+    meter_url = "http://" + meter_ip +  "/api/v1/data";  // Homewizard
+  } else {
     return 0;
   }                      
   
-  if (http.begin(client_shelly, shelly_url))  {  
+  if (http.begin(client_meter, meter_url))  {  
     int httpCode = http.GET();         
     if (httpCode > 0) {
       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
@@ -771,7 +798,11 @@ int getMeterData(int type) {
           power1 = doc["switch:0"]["apower"]; 
           power2 = 0;
           power3 = 0;
-        }  
+        } else if (type == homewizard) {
+          power1 = doc["active_power_l1_w"];
+          power2 = doc["active_power_l2_w"];
+          power3 = doc["active_power_l3_w"];
+        }
 
               
         if(!checkbox_meter_l1){
@@ -797,13 +828,13 @@ int getMeterData(int type) {
     } else {
       sprintf(dbgbuffer,"[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
       DBG_PRINTLN(dbgbuffer);
-      shelly_model = 0;
+      meter_model = 0;
     }
 
     http.end();
   } else {
     DBG_PRINTLN("[HTTP] Unable to connect\n");
-    shelly_model = 0;
+    meter_model = 0;
   }
 
   return power;
@@ -961,7 +992,7 @@ void setup() {
       if(checkbox_nulleinspeisung){       // Stausanzeige
         myJson["NULLSTATE"] = "EIN";
       }else{
-        myJson["NULLSTATE"] = "AUS";
+        myJson["NULLSTATE"] = "OFF";
       }
 
       myJson["CBMQTTSTATE"] = checkbox_mqttenabled; //checkbox
@@ -1216,7 +1247,7 @@ void setup() {
       
       saveConfig(); 
 
-      shelly_ip = String(meteripaddr);
+      meter_ip = String(meteripaddr);
 
       request->send_P(200, "text/html", index_html, processor);
     });
@@ -1228,7 +1259,7 @@ void setup() {
     
     rssi = WiFi.RSSI();
    
-    shelly_model = getShellyType(); // get shelly typ, 3em / 3empro
+    meter_model = getMeterType(); // get shelly typ, 3em / 3empro
 
     digitalWrite(SERIAL_COMMUNICATION_CONTROL_PIN, RS485_TX_PIN_VALUE); // RS485 Modul -> set board to transmit 
   }
@@ -1280,10 +1311,10 @@ void loop() {
 
   // timer to get Shelly3EM data
   if ((millis() - lastMeterinterval) > meterinterval) {
-    if (shelly_model > 0){
-      meter_power = getMeterData(shelly_model);
+    if (meter_model > 0){
+      meter_power = getMeterData(meter_model);
     } else{
-      shelly_model = getShellyType();
+      meter_model = getMeterType();
       DBG_PRINTLN("Kein Shelly erkannt! Bitte IP eintragen, speichern und ESP neu starten.");
     }
 
@@ -1340,6 +1371,3 @@ void loop() {
 
 
 }
-
-
-
