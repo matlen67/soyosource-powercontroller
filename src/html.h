@@ -146,7 +146,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       justify-content:flex-start;
       align-items: center;
       margin-left: 10px;
-      margin-top: 5px;
+      margin-top: 2px;
     }
 
     .flexColLeft{
@@ -200,7 +200,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
   <div class="topnav">
     <h3>SoyoSource-PowerController</h3>
-    <div class="version">v 1.240521</div>
+    <div class="version">v 1.240819</div>
   </div>
 
   <div class="content">
@@ -382,6 +382,14 @@ const char index_html[] PROGMEM = R"rawliteral(
             <div class="flexColRight"><input type="number" id="MQTTPORT" min="0" max="65535" /></div>
           </div>
           <div class="flexContainer">
+            <div class="flexColLeft">MQTT User:</div>
+            <div class="flexColRight"><input type="text" id="MQTTUSER" maxlength="30" /></div>
+          </div>
+          <div class="flexContainer">
+            <div class="flexColLeft">MQTT Pass:</div>
+            <div class="flexColRight"><input type="text" id="MQTTPASS" maxlength="30" /></div>
+          </div>
+          <div class="flexContainer">
             <div style="padding-right: 50px;">Aktiv: <input type="checkbox" onchange="toggleCheckbox(this)" id="CBMQTTSTATE" /></div>
             <div>Status: </label><span id="MQTTSTATECL"></span></div>
           </div>
@@ -528,6 +536,8 @@ const char index_html[] PROGMEM = R"rawliteral(
       document.getElementById("CBTIMER2").checked         = data_start.CBTIMER2
       document.getElementById("MQTTSERVER").value         = data_start.MQTTSERVER
       document.getElementById("MQTTPORT").value           = data_start.MQTTPORT
+      document.getElementById("MQTTUSER").value           = data_start.MQTTUSER
+      document.getElementById("MQTTPASS").value           = data_start.MQTTPASS
       document.getElementById("BATSOCSTOP").value         = data_start.BATSOCSTOP
       document.getElementById("BATSOCSTART").value        = data_start.BATSOCSTART
       document.getElementById("CBBATSCHUTZ").checked      = data_start.CBBATSCHUTZ
@@ -632,6 +642,8 @@ const char index_html[] PROGMEM = R"rawliteral(
 
     var mqttserver = document.getElementById("MQTTSERVER").value;
     var mqttport = document.getElementById("MQTTPORT").value;
+    var mqttuser = document.getElementById("MQTTUSER").value;
+    var mqttpass = document.getElementById("MQTTPASS").value;
     var mqttbatvol = document.getElementById("MQTTBATVOL").value;
     var mqttbatsoc = document.getElementById("MQTTBATSOC").value;
 
@@ -644,8 +656,8 @@ const char index_html[] PROGMEM = R"rawliteral(
     var xhr = new XMLHttpRequest();
     xhr.open("GET", "/savesettings?t1=" + timer1_time + "&w1=" + timer1_watt + "&t2=" + timer2_time + "&w2=" + timer2_watt +
      "&meteripaddr=" + meteripaddr + "&meterinterval=" + meterinterval + "&maxwatt=" + maxwatt + "&nullinterval=" + nullinterval +
-     "&nulloffset=" + nulloffset + "&mqttserver=" + mqttserver + "&mqttport=" + mqttport + "&mqttbatvol=" + mqttbatvol + 
-     "&mqttbatsoc=" + mqttbatsoc + "&batsocstop=" + batsocstop + "&batsocstart=" + batsocstart + "&tout=" + tout, true);
+     "&nulloffset=" + nulloffset + "&mqttserver=" + mqttserver + "&mqttport=" + mqttport + "&mqttuser=" + mqttuser + "&mqttpass=" + mqttpass +
+     "&mqttbatvol=" + mqttbatvol + "&mqttbatsoc=" + mqttbatsoc + "&batsocstop=" + batsocstop + "&batsocstart=" + batsocstart + "&tout=" + tout, true);
     xhr.send();    
   };
 

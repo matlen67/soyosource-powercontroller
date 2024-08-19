@@ -1,7 +1,7 @@
 /***************************************************************************
   soyosource-powercontroller @matlen67
 
-  Version: 1.240508
+  Version: 1.240521
 
   16.03.2024 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
   03.04.2024 -> Statusübersicht bei geschlossenen details/summary boxen
@@ -14,6 +14,7 @@
   29.04.2024 -> Telnet entfernt
   05.05.2024 -> update ArduinoJson to 7.0.4
   08.05.2024 -> mqtt topic voltage & soc bearbeitbar 
+  21.05.2024 -> Nulleinspeisung update Output auf 5000
 
 
   *************************
@@ -109,6 +110,8 @@ unsigned long lastNullinterval = 0;
 //mqtt
 char mqtt_server[16] = "192.168.178.10";
 char mqtt_port[5] = "1889";
+char mqtt_user[32] = "";
+char mqtt_pass[32] = "";
 char msgData[64];
 String msg = "";
 char mqtt_topic_bat_voltage [48] = "VenusOS/SmartShunt/voltage";
@@ -315,7 +318,7 @@ void reconnect() {
 
     DBG_PRINTLN("");
         
-    if (client.connect(clientId)) {
+    if (client.connect(clientId, mqtt_user, mqtt_pass )) {
       DBG_PRINTLN("connection established");
 
       client.publish(topic_power, "0"); 
@@ -400,6 +403,14 @@ void readConfig(){
           DBG_PRINTLN("\nparsed json");
           strcpy(mqtt_server, json["mqtt_server"]);
           strcpy(mqtt_port, json["mqtt_port"]);
+
+          if(json.containsKey("mqtt_user")){    
+            strcpy(mqtt_user, json["mqtt_user"]);
+          }
+
+          if(json.containsKey("mqtt_pass")){ 
+            strcpy(mqtt_pass, json["mqtt_pass"]);
+          }
 
           if(json.containsKey("mqtt_bat_vol")){
             strcpy(mqtt_topic_bat_voltage, json["mqtt_bat_vol"]);
@@ -559,6 +570,8 @@ void saveConfig(){
  
   json["mqtt_server"] = mqtt_server;
   json["mqtt_port"] = mqtt_port;
+  json["mqtt_user"] = mqtt_user;
+  json["mqtt_pass"] = mqtt_pass;
   json["mqtt_bat_vol"] = mqtt_topic_bat_voltage;
   json["mqtt_bat_soc"] = mqtt_topic_bat_soc;
 
@@ -872,13 +885,18 @@ void setup() {
 
   
   ESPAsync_WMParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
-  ESPAsync_WMParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6); 
+  ESPAsync_WMParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 6);
+  ESPAsync_WMParameter custom_mqtt_user("user", "mqtt user", mqtt_user, 32);
+  ESPAsync_WMParameter custom_mqtt_pass("pass", "mqtt pass", mqtt_pass, 32); 
 
   ESPAsync_WiFiManager wifiManager(&server, &dns);
   wifiManager.setSaveConfigCallback(saveConfigCallback);
   wifiManager.setConfigPortalTimeout(60);
   wifiManager.addParameter(&custom_mqtt_server);
   wifiManager.addParameter(&custom_mqtt_port);
+  wifiManager.addParameter(&custom_mqtt_user);
+  wifiManager.addParameter(&custom_mqtt_pass);
+
   configTime(MY_TZ, MY_NTP_SERVER);
   
   bool res = wifiManager.autoConnect(clientId);
@@ -900,6 +918,8 @@ void setup() {
     //read updated parameters
     strcpy(mqtt_server, custom_mqtt_server.getValue());
     strcpy(mqtt_port, custom_mqtt_port.getValue());
+    strcpy(mqtt_user, custom_mqtt_user.getValue());
+    strcpy(mqtt_pass, custom_mqtt_pass.getValue());
     
     //save the custom parameters to FS
     if (shouldSaveConfig) {
@@ -911,6 +931,8 @@ void setup() {
       DBG_PRINTLN("set mqtt server!");
       DBG_PRINTLN(String("mqtt_server: ") + mqtt_server);
       DBG_PRINTLN(String("mqtt_port: ") + mqtt_port);
+      DBG_PRINTLN(String("mqtt_user: ") + mqtt_user);
+      DBG_PRINTLN(String("mqtt_pass: ") + mqtt_pass);
 
       client.setServer(mqtt_server, atoi(mqtt_port));
       client.setCallback(mqtt_callback);
@@ -992,6 +1014,8 @@ void setup() {
 
       myJson["MQTTSERVER"] = mqtt_server;
       myJson["MQTTPORT"] = mqtt_port;
+      myJson["MQTTUSER"] = mqtt_user;
+      myJson["MQTTPASS"] = mqtt_pass;
       myJson["MQTTBATVOL"] = mqtt_topic_bat_voltage;
       myJson["MQTTBATSOC"] = mqtt_topic_bat_soc;
       
@@ -1199,6 +1223,15 @@ void setup() {
       value =  request->getParam("mqttport")->value();
       memset(mqtt_port, 0, sizeof(mqtt_port)); 
       strcat(mqtt_port, value.c_str());
+
+      value =  request->getParam("mqttuser")->value();
+      memset(mqtt_user, 0, sizeof(mqtt_user)); 
+      strcat(mqtt_user, value.c_str());
+
+      value =  request->getParam("mqttpass")->value();
+      memset(mqtt_pass, 0, sizeof(mqtt_pass)); 
+      strcat(mqtt_pass, value.c_str());
+
 
       value =  request->getParam("mqttbatvol")->value();
       memset(mqtt_topic_bat_voltage, 0, sizeof(mqtt_topic_bat_voltage)); 
