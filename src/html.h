@@ -200,7 +200,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
   <div class="topnav">
     <h3>SoyoSource-PowerController</h3>
-    <div class="version">v 1.240819</div>
+    <div class="version">v 1.241013</div>
   </div>
 
   <div class="content">
@@ -256,7 +256,7 @@ const char index_html[] PROGMEM = R"rawliteral(
           <hr>
           <div class="flexContainer">
             <div class="flexColLeft">Teiler Output:</div>
-            <div class="flexColRight"><input type="number" min="1" max="3" id="TOUT" /></div>
+            <div class="flexColRight"><input type="number" min="1" max="6" id="TOUT" /></div>
           </div>
           <hr>
           <span class="title1">Manuelle Steuerung</span>

@@ -1,7 +1,7 @@
 /***************************************************************************
   soyosource-powercontroller @matlen67
 
-  Version: 1.240521
+  Version: 1.241013
 
   16.03.2024 -> Speichern der Checkboxzustände: aktiv Timer1 / Timer2
   03.04.2024 -> Statusübersicht bei geschlossenen details/summary boxen
@@ -15,6 +15,8 @@
   05.05.2024 -> update ArduinoJson to 7.0.4
   08.05.2024 -> mqtt topic voltage & soc bearbeitbar 
   21.05.2024 -> Nulleinspeisung update Output auf 5000
+  13.10.2024 -> Teiler Output auf 6 erhöht
+                Shelly 3EM Pro -> Auswertung Json bei Einphasiger Nutzung
 
 
   *************************
@@ -739,7 +741,7 @@ int getMeterData(int type) {
   int power2 = 0;
   int power3 = 0; 
   
-  JsonDocument doc;
+  JsonDocument json;
   WiFiClient client_shelly;
   HTTPClient http;
    
@@ -756,7 +758,7 @@ int getMeterData(int type) {
     if (httpCode > 0) {
       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
         String payload = http.getString();   
-        DeserializationError error = deserializeJson(doc, payload);
+        DeserializationError error = deserializeJson(json, payload);
                 
         if (error) {
           DBG_PRINT(F("deserializeJson() failed: "));
@@ -765,23 +767,30 @@ int getMeterData(int type) {
 
        
         if (type == shelly_3em_pro) {
-          power1 = doc["em:0"]["a_act_power"];  
-          power2 = doc["em:0"]["b_act_power"];
-          power3 = doc["em:0"]["c_act_power"]; 
+          if(json.containsKey("em:0")){ 
+            power1 = json["em:0"]["a_act_power"];  
+            power2 = json["em:0"]["b_act_power"];
+            power3 = json["em:0"]["c_act_power"]; 
+          }
+          else if (json.containsKey("em1:0")){
+            power1 = json["em1:0"]["act_power"];  
+            power2 = json["em1:1"]["act_power"];
+            power3 = json["em1:2"]["act_power"]; 
+          }
         } else if (type == shelly_3em) {
-          power1 = doc["emeters"][0]["power"]; 
-          power2 = doc["emeters"][1]["power"]; 
-          power3 = doc["emeters"][2]["power"]; 
+          power1 = json["emeters"][0]["power"]; 
+          power2 = json["emeters"][1]["power"]; 
+          power3 = json["emeters"][2]["power"]; 
         } else if (type == shelly_em) {
-          power1 = doc["meters"][0]["power"]; 
-          power2 = doc["meters"][1]["power"]; 
+          power1 = json["meters"][0]["power"]; 
+          power2 = json["meters"][1]["power"]; 
           power3 = 0; 
         } else if (type == shelly_1pm) {
-          power1 = doc["meters"][0]["power"];
+          power1 = json["meters"][0]["power"];
           power2 = 0;
           power3 = 0;   
         } else if (type == shelly_plus_1pm) {
-          power1 = doc["switch:0"]["apower"]; 
+          power1 = json["switch:0"]["apower"]; 
           power2 = 0;
           power3 = 0;
         }  
