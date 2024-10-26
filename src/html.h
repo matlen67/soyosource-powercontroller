@@ -170,7 +170,6 @@ const char index_html[] PROGMEM = R"rawliteral(
     
     input[type="checkbox"] {
       accent-color: var(--accent-color);
-      
     }
 
      
