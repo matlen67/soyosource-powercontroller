@@ -17,7 +17,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     --input-bgcolor: #fefefe;
     --secondary-text: #232738;
     --primary-color: #3a435d;
-    --accent-color: #0099ff;
+    --accent-color:  #006579;
     }
 
     .darkmode{
@@ -31,7 +31,7 @@ const char index_html[] PROGMEM = R"rawliteral(
       --input-bgcolor: #1f1f22;
       --secondary-text:#a4a5b8;
       --primary-color: #3a435d;
-      --accent-color:  #00b9d1;
+      --accent-color:  #0091AE;
     }
 
     section{
@@ -166,7 +166,12 @@ const char index_html[] PROGMEM = R"rawliteral(
         box-sizing: border-box;
         color: var(--text-color);
         background-color: var(--input-bgcolor);
-    }     
+    }
+    
+    input[type="checkbox"] {
+      accent-color: var(--accent-color);
+    }
+
      
     hr {
         border: 0;
