@@ -166,7 +166,12 @@ const char index_html[] PROGMEM = R"rawliteral(
         box-sizing: border-box;
         color: var(--text-color);
         background-color: var(--input-bgcolor);
-    }     
+    }
+    
+    input[type="checkbox"] {
+      accent-color: var(--accent-color);
+    }
+
      
     hr {
         border: 0;
