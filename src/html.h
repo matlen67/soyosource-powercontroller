@@ -590,6 +590,27 @@ const char index_html[] PROGMEM = R"rawliteral(
     <span><span id="datum"></span> - <span id="uhrzeit"></span></span>
   </div>
 
+<script>
+  let darkmode = localStorage.getItem('darkmode')
+    const themeSwitch = document.getElementById('theme-switch')
+
+    const enableDarkmode = () => {
+      document.body.classList.add('darkmode')
+      localStorage.setItem('darkmode', 'active')
+    }
+
+    const disableDarkmode = () => {
+      document.body.classList.remove('darkmode')
+      localStorage.setItem('darkmode', null)
+    }
+
+    if(darkmode === "active") enableDarkmode()
+
+    themeSwitch.addEventListener("click", () => {
+      darkmode = localStorage.getItem('darkmode')
+      darkmode !== "active" ? enableDarkmode() : disableDarkmode()
+    })
+</script>
 
 <script>
   fetch('/json').then(function(response) {
@@ -779,27 +800,6 @@ const char index_html[] PROGMEM = R"rawliteral(
   var mydate = new Date();
   var options = { year: 'numeric', month: '2-digit', day: '2-digit' };
   document.getElementById("datum").textContent = mydate.toLocaleString('de-DE', options);
-
-
-  let darkmode = localStorage.getItem('darkmode')
-  const themeSwitch = document.getElementById('theme-switch')
-
-  const enableDarkmode = () => {
-    document.body.classList.add('darkmode')
-    localStorage.setItem('darkmode', 'active')
-  }
-
-  const disableDarkmode = () => {
-    document.body.classList.remove('darkmode')
-    localStorage.setItem('darkmode', null)
-  }
-
-  if(darkmode === "active") enableDarkmode()
-
-  themeSwitch.addEventListener("click", () => {
-    darkmode = localStorage.getItem('darkmode')
-    darkmode !== "active" ? enableDarkmode() : disableDarkmode()
-  })
 
 </script>
 
