@@ -1,7 +1,7 @@
 
 ## Update 21.12.2024
-Ich bin nun auf einen Multiplus-II umgestiegen und werde daher an diesem Projekt nicht mehr weiterarbeiten.
-Bis dato hat der soyosource-powercontroler aber einwandfrei funktioniert.
+Ich bin auf einen Multiplus-II umgestiegen und werde daher an diesem Projekt nicht mehr weiterarbeiten.
+Bis dato hat der soyosource-powercontroler einwandfrei funktioniert.
 
 # soyosource-powercontroller
 Mit diesem Projekt ist es möglich die Einspeiseleistung einens SoyoSource GTN-1000W / GTN-1200W per Webinterface durch manuelle Steuerung, Zeitplan, MQTT oder mit einem Shelly EnergyMeter als Nulleinspeisung (3EM PRO, 3EM, EM, 1PM) zu steuern.
